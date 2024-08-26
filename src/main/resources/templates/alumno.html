@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Alumno - Detalles</title>
+    <link rel="stylesheet" type="text/css" href="../static/styles.css">
+</head>
+<body>
+    <header>
+        <div class="header-container">
+            <h1>ALBUM</h1>
+            <nav>
+                <ul>
+                    <li><a href="#">Inicio</a></li>
+                    <li><a href="#">Servicios</a></li>
+                    <li><a href="#">Perfil</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+    <div class="content-container">
+        <div class="student-info">
+            <h2>Información del Estudiante</h2>
+            <div class="student-details">
+                <div class="student-photo">
+                    <img src="../static/images/student-photo.jpg" alt="Foto del estudiante">
+                </div>
+                <div class="student-data">
+                    <p><strong>Nombre:</strong> <span th:text="${alumno.nombreCompleto}"></span></p>
+                    <p><strong>Actividad Física:</strong> <span th:text="${alumno.nombreActividadFisica}"></span></p>
+                    <p><strong>Horario:</strong> <span th:text="${alumno.horario}"></span></p>
+                    <p><strong>Coach:</strong> <span th:text="${alumno.nombreCoach}"></span></p>
+                </div>
+            </div>
+        </div>
+        <div class="appointments">
+            <h2>Citas Pendientes</h2>
+            <table>
+                <thead>
+                    <tr>
+                        
+                        <th>Día</th>
+                        <th>Hora</th>
+                        <th>Estado Asistencia</th>
+                        <th>Verificación</th>
+                        <th>Autorizado Por</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="cita : ${citasPendientes}">
+                     
+                        <td th:text="${cita.diaSemana}"></td>
+                        <td th:text="${cita.hora}"></td>
+                        <td th:text="${cita.estadoAsistencia}"></td>
+                        <td th:text="${cita.verificacion}"></td>
+                        <td th:text="${cita.autorizadoPor}"></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="workshops">
+            <h2>Talleres Pendientes</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Descripción</th>
+                        <th>Fecha</th>
+                        <th>Hora</th>
+                        <th>Estado Asistencia</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="taller : ${talleresPendientes}">
+                        <td th:text="${taller.nombre}"></td>
+                        <td th:text="${taller.descripcion}"></td>
+                        <td th:text="${taller.fecha}"></td>
+                        <td th:text="${taller.hora}"></td>
+                        <td th:text="${taller.estadoAsistencia}"></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html>

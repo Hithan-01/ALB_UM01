@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Coach - Detalles</title>
+    <link rel="stylesheet" type="text/css" href="../static/styles.css">
+</head>
+<body>
+    <header>
+        <div class="header-container">
+            <h1>ALBUM</h1>
+            <nav>
+                <ul>
+                    <li><a href="#">Inicio</a></li>
+                    <li><a href="#">Servicios</a></li>
+                    <li><a href="#">Perfil</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+    <div class="content-container">
+        <div class="coach-info">
+            <h2>Información del Coach</h2>
+            <table>
+                <tr>
+                    <th>Nombre Completo</th>
+                    <td th:text="${coach.nombreCompleto}"></td>
+                </tr>
+                <tr>
+                    <th>Email</th>
+                    <td th:text="${coach.email}"></td>
+                </tr>
+            </table>
+        </div>
+        <div class="activities">
+            <h2>Actividades Físicas</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Nombre de la Actividad</th>
+                        <th>Grupo</th>
+                        <th>Día</th>
+                        <th>Hora</th>
+                        <th>Alumnos</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="actividad : ${coach.actividades}">
+                        <td th:text="${actividad.nombre}"></td>
+                        <td th:text="${actividad.grupo}"></td>
+                        <td th:text="${actividad.diaSemana}"></td>
+                        <td th:text="${actividad.hora}"></td>
+                        <td>
+                            <ul>
+                                <li th:each="alumno : ${actividad.alumnos}">
+                                    <span th:text="${alumno.nombreCompleto}"></span> 
+                                    (<span th:text="${alumno.horario}"></span>)
+                                </li>
+                            </ul>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html>
+

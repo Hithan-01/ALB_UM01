@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Administrador - Detalles</title>
+    <link rel="stylesheet" type="text/css" href="../static/styles.css">
+</head>
+<body>
+    <header>
+        <div class="header-container">
+            <h1>ALBUM</h1>
+            <nav>
+                <ul>
+                    <li><a href="#">Inicio</a></li>
+                    <li><a href="#">Servicios</a></li>
+                    <li><a href="#">Perfil</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+    <div class="content-container">
+        <div class="admin-info">
+            <h2>Información del Administrador</h2>
+            <div class="admin-details">
+                <p><strong>Nombre Completo:</strong> <span th:text="${admin.nombreCompleto}"></span></p>
+                <p><strong>Cargo Servicio:</strong> <span th:text="${admin.cargoServicio}"></span></p>
+            </div>
+        </div>
+        <div class="appointments">
+            <h2>Citas por Atender</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Día</th>
+                        <th>Hora</th>
+                        <th>Estado Asistencia</th>
+                        <th>Verificación</th>
+                        <th>Autorizado Por</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="cita : ${admin.citas}">
+                        <td th:text="${cita.diaSemana}"></td>
+                        <td th:text="${cita.hora}"></td>
+                        <td th:text="${cita.estadoAsistencia}"></td>
+                        <td th:text="${cita.verificacion}"></td>
+                        <td th:text="${cita.autorizadoPor}"></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html>
