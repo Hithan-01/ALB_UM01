@@ -22,98 +22,89 @@
         </div>
     </header>
     <div class="content-container">
-        <div class="student-info">
-            <h2>Información del Estudiante</h2>
-            <div class="student-details">
-                <div class="student-photo">
-                    <img src="../static/images/student-photo.jpg" alt="Foto del estudiante">
-                </div>
-                <div class="student-data">
-                    <p><strong>Nombre:</strong> <span th:text="${alumno.nombreCompleto}"></span></p>
-                    <p><strong>Actividad Física:</strong> <span th:text="${alumno.nombreActividadFisica}"></span></p>
-                    <p><strong>Horario:</strong> <span th:text="${alumno.horario}"></span></p>
-                    <p><strong>Coach:</strong> <span th:text="${alumno.nombreCoach}"></span></p>
-                </div>
-            </div>
+        <!-- Información del Estudiante -->
+<div class="student-info">
+    <h2>Información del Estudiante</h2>
+    <div class="student-details">
+        <div class="student-photo">
+            <img src="../static/images/student-photo.jpg" alt="Foto del estudiante">
         </div>
-        <div class="appointments">
-            <h2>Citas Pendientes</h2>
-            <table>
-                <thead>
-                    <tr>
-                        
-                        <th>Día</th>
-                        <th>Hora</th>
-                        <th>Estado Asistencia</th>
-                        <th>Verificación</th>
-                        <th>Autorizado Por</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr th:each="cita : ${citasPendientes}">
-                     
-                        <td th:text="${cita.diaSemana}"></td>
-                        <td th:text="${cita.hora}"></td>
-                        <td th:text="${cita.estadoAsistencia}"></td>
-                        <td th:text="${cita.verificacion}"></td>
-                        <td th:text="${cita.autorizadoPor}"></td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-        <div class="workshops">
-            <h2>Talleres Pendientes</h2>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Nombre</th>
-                        <th>Descripción</th>
-                        <th>Fecha</th>
-                        <th>Hora</th>
-                        <th>Estado Asistencia</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr th:each="taller : ${talleresPendientes}">
-                        <td th:text="${taller.nombre}"></td>
-                        <td th:text="${taller.descripcion}"></td>
-                        <td th:text="${taller.fecha}"></td>
-                        <td th:text="${taller.hora}"></td>
-                        <td th:text="${taller.estadoAsistencia}"></td>
-                    </tr>
-                </tbody>
-            </table>
+        <div class="student-data">
+            <p><strong>Nombre:</strong> <span th:text="${alumno.nombreCompleto}"></span></p>
+            <p><strong>Actividad Física:</strong> <span th:text="${alumno.nombreActividadFisica}"></span></p>
+            <p><strong>Horario:</strong> <span th:text="${alumno.horario}"></span></p>
+            <p><strong>Coach:</strong> <span th:text="${alumno.nombreCoach}"></span></p>
         </div>
     </div>
+</div>
 
-    <div class="container mt-5">
-        <h1>Bienvenido, <span th:text="${alumno.nombreCompleto}">Nombre Alumno</span></h1>
-    
-        <!-- Progreso del alumno -->
-        <h2>Progreso del Alumno</h2>
-        <div class="progress mb-4">
-            <div class="progress-bar" role="progressbar" th:style="'width:' + ${progreso} + '%;'"
-                 th:text="${progreso} + '%'"></div>
-        </div>
-    
-        <!-- Talleres confirmados -->
-        <h3>Talleres Confirmados</h3>
+        <!-- Mostrar Citas y Talleres Pendientes -->
+<div th:if="${!noPendientes}">
+    <h3>Citas y Talleres Pendientes</h3>
+
+    <!-- Citas Pendientes -->
+    <div th:if="${citasPendientes.size() > 0}">
+        <h4>Citas Pendientes</h4>
+        <ul class="list-group">
+            <li class="list-group-item" th:each="cita : ${citasPendientes}">
+                <strong th:text="${cita.nombreCita}">Nombre de la Cita</strong> -
+                <span th:text="${cita.diaSemana}">Día</span>,
+                <span th:text="${cita.hora}">Hora</span>
+            </li>
+        </ul>
+    </div>
+
+      <!-- Talleres Pendientes -->
+    <div th:if="${talleresPendientes.size() > 0}">
+        <h4>Talleres Pendientes</h4>
         <ul class="list-group mb-4">
             <li class="list-group-item" th:each="taller : ${talleresPendientes}">
                 <strong th:text="${taller.nombre}">Nombre del Taller</strong> -
                 <span th:text="${taller.fecha}">Fecha</span>
             </li>
         </ul>
-    
-        <!-- Citas confirmadas -->
-        <h3>Citas Confirmadas</h3>
-        <ul class="list-group">
-            <li class="list-group-item" th:each="cita : ${citasPendientes}">
-                <strong th:text="${cita.diaSemana}">Día de la Cita</strong> -
-                <span th:text="${cita.hora}">Hora</span>
-            </li>
-        </ul>
     </div>
+</div>
+
+<!-- Mostrar mensaje si no hay talleres ni citas pendientes -->
+<div th:if="${noPendientes}">
+    <p>No tienes talleres ni citas pendientes en este momento.</p>
+</div>
+
+
+    </div>
+
+
+<!-- Mostrar Progreso del Alumno -->
+    <div class="container mt-5">
+        <h1>Bienvenido, <span th:text="${alumno.nombreCompleto}">Nombre Alumno</span></h1>
+    
+       <!-- Progreso del alumno -->
+    <h2>Progreso del Alumno</h2>
+    <div class="progress mb-4">
+        <div class="progress-bar" role="progressbar" th:style="'width:' + ${progreso} + '%;'"
+             th:text="${progreso} + '%'"></div>
+    </div>
+    
+           <!-- Citas Confirmadas -->
+    <h3>Citas Confirmadas</h3>
+    <ul class="list-group">
+        <li class="list-group-item" th:each="cita : ${citasConfirmadas}">
+            <strong th:text="${cita.nombreCita}">Nombre de la Cita</strong> -
+            <span th:text="${cita.diaSemana}">Día</span>,
+            <span th:text="${cita.hora}">Hora</span>
+        </li>
+    </ul>
+    
+    <!-- Talleres Confirmados -->
+    <h3>Talleres Confirmados</h3>
+    <ul class="list-group mb-4">
+        <li class="list-group-item" th:each="taller : ${talleresConfirmados}">
+            <strong th:text="${taller.nombre}">Nombre del Taller</strong> -
+            <span th:text="${taller.fecha}">Fecha</span>
+        </li>
+    </ul>
+</div>
     
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
             integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"

@@ -39,6 +39,7 @@ public class UsuarioAdminServicio {
 
     private CitaDTO convertirACitaDTO(Ent_Cita cita) {
         return new CitaDTO(
+            cita.getUsuarioAdmin().getServicio().getNombre(), // Aquí se obtiene el nombre de la cita desde la entidad
             cita.getHorarioServicio().getDiaSemana(),
             cita.getHorarioServicio().getHora(),
             cita.getEstadoAsistencia(),

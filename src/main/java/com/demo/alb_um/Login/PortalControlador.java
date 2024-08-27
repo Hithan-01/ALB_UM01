@@ -1,5 +1,6 @@
 package com.demo.alb_um.Login;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.security.core.Authentication;
@@ -11,7 +12,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 import com.demo.alb_um.DTOs.AdminDTO;
 import com.demo.alb_um.DTOs.AlumnoDTO;
+import com.demo.alb_um.DTOs.CitaDTO;
 import com.demo.alb_um.DTOs.CoachDTO;
+import com.demo.alb_um.DTOs.TallerDTO;
 import com.demo.alb_um.Modulos.Admn.UsuarioAdminServicio;
 import com.demo.alb_um.Modulos.Alumno.UsuarioAlumnoServicio;
 import com.demo.alb_um.Modulos.Coach.CoachActividadServicio;
@@ -41,6 +44,7 @@ public class PortalControlador {
     // Calcular el progreso
     int progreso = usuarioAlumnoServicio.calcularProgresoAlumno(userName);
 
+   
     // Añadir el progreso al modelo
     model.addAttribute("progreso", progreso);
 
@@ -71,12 +75,31 @@ public class PortalControlador {
         Optional<AlumnoDTO> alumnoOpt = usuarioAlumnoServicio.obtenerInformacionAlumnoPorUserName(userName);
         if (alumnoOpt.isPresent()) {
             model.addAttribute("alumno", alumnoOpt.get());
-            model.addAttribute("citasPendientes", usuarioAlumnoServicio.obtenerCitasPendientes(userName));
-            model.addAttribute("talleresPendientes", usuarioAlumnoServicio.obtenerTalleresPendientes(userName));
+    
+            // Obtener citas y talleres pendientes
+            List<CitaDTO> citasPendientes = usuarioAlumnoServicio.obtenerCitasPendientes(userName);
+            List<TallerDTO> talleresPendientes = usuarioAlumnoServicio.obtenerTalleresPendientes(userName);
+    
+            // Obtener citas y talleres confirmados
+            List<CitaDTO> citasConfirmadas = usuarioAlumnoServicio.obtenerCitasConfirmadas(userName);
+            List<TallerDTO> talleresConfirmados = usuarioAlumnoServicio.obtenerTalleresConfirmados(userName);
+    
+            // Añadir las listas al modelo
+            model.addAttribute("citasPendientes", citasPendientes);
+            model.addAttribute("talleresPendientes", talleresPendientes);
+            model.addAttribute("citasConfirmadas", citasConfirmadas);
+            model.addAttribute("talleresConfirmados", talleresConfirmados);
+    
+            // Calcular si no hay pendientes
+            boolean noPendientes = talleresPendientes.isEmpty() && citasPendientes.isEmpty();
+            model.addAttribute("noPendientes", noPendientes);
+    
             return "alumno"; // Devuelve la vista "alumno.html"
         }
         return "error"; // Si no se encuentra el alumno
     }
+    
+
 
     private String cargarVistaAdmin(String userName, Model model) {
         Optional<AdminDTO> adminOpt = usuarioAdminServicio.obtenerInformacionAdminPorUserName(userName);

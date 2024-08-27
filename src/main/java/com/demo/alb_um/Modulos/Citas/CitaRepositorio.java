@@ -11,4 +11,8 @@ public interface CitaRepositorio extends JpaRepository<Ent_Cita, Long> {
 
     // Método para obtener todas las citas por username (sin filtrar por verificación)
     List<Ent_Cita> findByUsuarioAlumno_Usuario_UserName(String userName);
+
+    // Método para obtener citas no verificadas
+List<Ent_Cita> findByUsuarioAlumno_Usuario_UserNameAndVerificacionFalse(String userName);
+
 }

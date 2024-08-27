@@ -4,15 +4,15 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 
 public class CitaDTO {
-    
+    private String nombreCita;
     private LocalDate diaSemana;
     private LocalTime hora;
     private String estadoAsistencia;
     private Boolean verificacion;
     private String autorizadoPor;
 
-    public CitaDTO(LocalDate diaSemana, LocalTime hora, String estadoAsistencia, Boolean verificacion, String autorizadoPor) {
-        
+    public CitaDTO(String nombreCita, LocalDate diaSemana, LocalTime hora, String estadoAsistencia, Boolean verificacion, String autorizadoPor) {
+        this.nombreCita = nombreCita;
         this.diaSemana = diaSemana;
         this.hora = hora;
         this.estadoAsistencia = estadoAsistencia;
@@ -62,5 +62,13 @@ public class CitaDTO {
 
     public void setAutorizadoPor(String autorizadoPor) {
         this.autorizadoPor = autorizadoPor;
+    }
+
+    public String getNombreCita() {
+        return nombreCita;
+    }
+
+    public void setNombreCita(String nombreCita) {
+        this.nombreCita = nombreCita;
     }
 }

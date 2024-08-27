@@ -57,14 +57,11 @@ public class UsuarioAlumnoServicio {
     @Autowired
     private CitaRepositorio citaRepositorio;
 
-    public List<CitaDTO> obtenerCitasPendientes(String userName) {
-        List<Ent_Cita> citas = citaRepositorio.findByUsuarioAlumno_Usuario_UserName(userName);
-        return citas.stream().map(this::convertirACitaDTO).collect(Collectors.toList());
-    }
+    
 
     private CitaDTO convertirACitaDTO(Ent_Cita cita) {
         return new CitaDTO(
-           
+            cita.getUsuarioAdmin().getServicio().getNombre(), // Aquí se obtiene el nombre de la cita desde la entidad
             cita.getHorarioServicio().getDiaSemana(),
             cita.getHorarioServicio().getHora(),
             cita.getEstadoAsistencia(),
@@ -76,10 +73,8 @@ public class UsuarioAlumnoServicio {
     @Autowired
     private InscripcionTallerRepositorio inscripcionTallerRepositorio;
 
-    public List<TallerDTO> obtenerTalleresPendientes(String userName) {
-        List<Ent_InscripcionTaller> inscripciones = inscripcionTallerRepositorio.findByUsuarioAlumno_Usuario_UserName(userName);
-        return inscripciones.stream().map(this::convertirATallerDTO).collect(Collectors.toList());
-    }
+   
+    
     private TallerDTO convertirATallerDTO(Ent_InscripcionTaller inscripcion) {
         return new TallerDTO(
             inscripcion.getTaller().getNombre(),
@@ -97,6 +92,27 @@ public class UsuarioAlumnoServicio {
     private java.time.LocalTime convertirHora(java.sql.Time time) {
         return time != null ? time.toLocalTime() : null;
     }
+
+    public List<CitaDTO> obtenerCitasConfirmadas(String userName) {
+        List<Ent_Cita> citasConfirmadas = citaRepositorio.findByUsuarioAlumno_Usuario_UserNameAndVerificacionTrue(userName);
+        return citasConfirmadas.stream().map(this::convertirACitaDTO).collect(Collectors.toList());
+    }
+    
+    public List<TallerDTO> obtenerTalleresConfirmados(String userName) {
+        List<Ent_InscripcionTaller> talleresConfirmados = inscripcionTallerRepositorio.findByUsuarioAlumno_Usuario_UserNameAndVerificacionTrue(userName);
+        return talleresConfirmados.stream().map(this::convertirATallerDTO).collect(Collectors.toList());
+    }
+
+    public List<CitaDTO> obtenerCitasPendientes(String userName) {
+        List<Ent_Cita> citasPendientes = citaRepositorio.findByUsuarioAlumno_Usuario_UserNameAndVerificacionFalse(userName);
+        return citasPendientes.stream().map(this::convertirACitaDTO).collect(Collectors.toList());
+    }
+    
+    public List<TallerDTO> obtenerTalleresPendientes(String userName) {
+        List<Ent_InscripcionTaller> talleresPendientes = inscripcionTallerRepositorio.findByUsuarioAlumno_Usuario_UserNameAndVerificacionFalse(userName);
+        return talleresPendientes.stream().map(this::convertirATallerDTO).collect(Collectors.toList());
+    }
+    
 
     public int calcularProgresoAlumno(String userName) {
         int totalAsistencias = 0;
