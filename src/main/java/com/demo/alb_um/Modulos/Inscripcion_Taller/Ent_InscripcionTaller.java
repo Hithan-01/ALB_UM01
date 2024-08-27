@@ -26,6 +26,9 @@ public class Ent_InscripcionTaller {
     @Column(name = "estado_asistencia", length = 20)
     private String estadoAsistencia;
 
+    @Column(name = "verificacion")
+    private Boolean verificacion;
+
     // Getters y Setters
     public Long getIdInscripcion() {
         return idInscripcion;
@@ -57,5 +60,13 @@ public class Ent_InscripcionTaller {
 
     public void setEstadoAsistencia(String estadoAsistencia) {
         this.estadoAsistencia = estadoAsistencia;
+    }
+
+    public Boolean getVerificacion() {
+        return verificacion;
+    }
+
+    public void setVerificacion(Boolean verificacion) {
+        this.verificacion = verificacion;
     }
 }

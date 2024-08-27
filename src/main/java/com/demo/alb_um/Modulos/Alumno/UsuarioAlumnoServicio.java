@@ -97,4 +97,21 @@ public class UsuarioAlumnoServicio {
     private java.time.LocalTime convertirHora(java.sql.Time time) {
         return time != null ? time.toLocalTime() : null;
     }
+
+    public int calcularProgresoAlumno(String userName) {
+        int totalAsistencias = 0;
+    
+        // Obtener las citas confirmadas
+        List<Ent_Cita> citasConfirmadas = citaRepositorio.findByUsuarioAlumno_Usuario_UserNameAndVerificacionTrue(userName);
+        totalAsistencias += citasConfirmadas.size();
+    
+        // Obtener los talleres confirmados
+        List<Ent_InscripcionTaller> talleresConfirmados = inscripcionTallerRepositorio.findByUsuarioAlumno_Usuario_UserNameAndVerificacionTrue(userName);
+        totalAsistencias += talleresConfirmados.size();
+    
+        // Calcular el progreso como porcentaje
+        int progreso = (int) (((double) totalAsistencias / 4) * 100);
+        return Math.min(progreso, 100); // Asegurarse de que no supere el 100%
+    }
+    
 }

@@ -37,6 +37,14 @@ public class PortalControlador {
         String userName = authentication.getName();
         String role = authentication.getAuthorities().iterator().next().getAuthority();
 
+
+    // Calcular el progreso
+    int progreso = usuarioAlumnoServicio.calcularProgresoAlumno(userName);
+
+    // Añadir el progreso al modelo
+    model.addAttribute("progreso", progreso);
+
+    
         // Dependiendo del rol, cargar la información correspondiente y devolver la vista adecuada
         switch (role) {
             case "ROLE_COACH":
