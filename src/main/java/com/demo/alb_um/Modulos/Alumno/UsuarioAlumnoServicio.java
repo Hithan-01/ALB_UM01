@@ -61,7 +61,7 @@ public class UsuarioAlumnoServicio {
 
     private CitaDTO convertirACitaDTO(Ent_Cita cita) {
         return new CitaDTO(
-            cita.getUsuarioAdmin().getServicio().getNombre(), // Aquí se obtiene el nombre de la cita desde la entidad
+            cita.getUsuarioAdmin().getServicio().getNombre(), 
             cita.getHorarioServicio().getDiaSemana(),
             cita.getHorarioServicio().getHora(),
             cita.getEstadoAsistencia(),
@@ -117,17 +117,15 @@ public class UsuarioAlumnoServicio {
     public int calcularProgresoAlumno(String userName) {
         int totalAsistencias = 0;
     
-        // Obtener las citas confirmadas
+
         List<Ent_Cita> citasConfirmadas = citaRepositorio.findByUsuarioAlumno_Usuario_UserNameAndVerificacionTrue(userName);
         totalAsistencias += citasConfirmadas.size();
-    
-        // Obtener los talleres confirmados
+
         List<Ent_InscripcionTaller> talleresConfirmados = inscripcionTallerRepositorio.findByUsuarioAlumno_Usuario_UserNameAndVerificacionTrue(userName);
         totalAsistencias += talleresConfirmados.size();
     
-        // Calcular el progreso como porcentaje
         int progreso = (int) (((double) totalAsistencias / 4) * 100);
-        return Math.min(progreso, 100); // Asegurarse de que no supere el 100%
+        return Math.min(progreso, 100); 
     }
     
 }
