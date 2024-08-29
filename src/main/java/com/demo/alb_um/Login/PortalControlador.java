@@ -8,8 +8,10 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import com.demo.alb_um.DTOs.ActividadFisicaDTO;
 import com.demo.alb_um.DTOs.AdminDTO;
 import com.demo.alb_um.DTOs.AlumnoDTO;
 import com.demo.alb_um.DTOs.CitaDTO;
@@ -108,5 +110,12 @@ public class PortalControlador {
             return "admin"; // Devuelve la vista "admin.html"
         }
         return "error"; // Si no se encuentra el admin
+    }
+
+    @GetMapping("/listadealumno/{idActividadFisica}")
+    public String mostrarListaAlumnos(@PathVariable Long idActividadFisica, Model model) {
+        ActividadFisicaDTO actividad = coachActividadServicio.obtenerActividadPorId(idActividadFisica);
+        model.addAttribute("actividad", actividad);
+        return "listaAlumnos";
     }
 }

@@ -4,12 +4,13 @@ import com.demo.alb_um.DTOs.CoachDTO;
 import com.demo.alb_um.DTOs.AlumnoDTO;
 import com.demo.alb_um.DTOs.ActividadFisicaDTO;
 import com.demo.alb_um.Modulos.Usuario.Entidad_Usuario;
+import com.demo.alb_um.Modulos.Actividad_Fisica.ActividadFisicaRepositorio;
 import com.demo.alb_um.Modulos.Actividad_Fisica.Entidad_ActividadFisica;
 import com.demo.alb_um.Modulos.Alumno.Entidad_Usuario_Alumno;
 import com.demo.alb_um.Modulos.Alumno_Actividad.Ent_AlumnoActividad;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
+import java.util.NoSuchElementException;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -65,5 +66,17 @@ public class CoachActividadServicio {
             actividadFisica.getNombre(),
             horario
         );
+    }
+
+    @Autowired
+    private ActividadFisicaRepositorio actividadRepositorio; // Inyecta el repositorio aquí
+
+    public ActividadFisicaDTO obtenerActividadPorId(Long idActividadFisica) {
+        Optional<Entidad_ActividadFisica> actividadOpt = actividadRepositorio.findById(idActividadFisica);
+        if (actividadOpt.isPresent()) {
+            return convertirAActividadFisicaDTO(actividadOpt.get());
+        } else {
+            throw new NoSuchElementException("Actividad no encontrada");
+        }
     }
 }
