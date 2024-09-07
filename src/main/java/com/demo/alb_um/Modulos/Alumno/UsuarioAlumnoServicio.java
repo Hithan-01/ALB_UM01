@@ -26,32 +26,35 @@ public class UsuarioAlumnoServicio {
 
     public Optional<AlumnoDTO> obtenerInformacionAlumnoPorUserName(String userName) {
         Optional<Entidad_Usuario_Alumno> alumnoOpt = usuarioAlumnoRepositorio.findByUsuario_UserName(userName);
-
+    
         if (alumnoOpt.isPresent()) {
             Entidad_Usuario_Alumno alumno = alumnoOpt.get();
+            Long idUsuarioAlumno = alumno.getIdUsuarioAlumno();
             String nombreCompleto = alumno.getUsuario().getNombre() + " " + alumno.getUsuario().getApellido();
-
+    
             Optional<Entidad_ActividadFisica> actividadFisicaOpt = alumno.getAlumnoActividades().stream()
                     .findFirst() // Asumiendo que el alumno está inscrito en una sola actividad
                     .map(Ent_AlumnoActividad::getActividadFisica);
-
+    
             String nombreActividadFisica = actividadFisicaOpt.map(Entidad_ActividadFisica::getNombre).orElse("No inscrito");
             String diaSemana = actividadFisicaOpt.map(Entidad_ActividadFisica::getDiaSemana).orElse("N/A");
             Time hora = actividadFisicaOpt.map(Entidad_ActividadFisica::getHora).orElse(null);
             String horario = diaSemana + " " + (hora != null ? hora.toString() : "");
-
+    
             String nombreCoach = actividadFisicaOpt.flatMap(actividadFisica -> actividadFisica.getCoachActividades().stream()
                     .findFirst() // Asumiendo que cada actividad tiene un solo coach
                     .map(Ent_CoachActividad::getUsuario)
                     .map(usuario -> usuario.getNombre())
             ).orElse("Sin Coach");
-
-            return Optional.of(new AlumnoDTO(nombreCompleto, nombreActividadFisica, nombreCoach, horario));
+    
+            // Aquí agregamos el idUsuarioAlumno al DTO y 'yaAsistio' por defecto como false
+            return Optional.of(new AlumnoDTO(idUsuarioAlumno, nombreCompleto, nombreActividadFisica, nombreCoach, horario, false));
         }
-
+    
         return Optional.empty();
     }
-
+    
+    
      
 
     @Autowired

@@ -14,6 +14,9 @@ public class Ent_AsistenciaActividadFisica {
     @Column(name = "id_asistencia_actividad_fisica")
     private Long idAsistenciaActividadFisica;
     
+    @Column(name = "presente")
+private boolean presente;
+
     @ManyToOne
     @JoinColumn(name = "id_lista")
     @JsonBackReference
@@ -47,6 +50,15 @@ public class Ent_AsistenciaActividadFisica {
     }
 
     public void setUsuarioAlumno(Entidad_Usuario_Alumno usuarioAlumno) {
+       
         this.usuarioAlumno = usuarioAlumno;
+    }
+
+    public boolean isPresente() {
+        return presente;
+    }
+    
+    public void setPresente(boolean presente) {
+        this.presente = presente;
     }
 }

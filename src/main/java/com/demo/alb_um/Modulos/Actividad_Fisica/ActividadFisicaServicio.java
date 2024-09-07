@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+
 import java.util.stream.Collectors;
 
 @Service
@@ -42,18 +43,21 @@ public class ActividadFisicaServicio {
 
     private AlumnoDTO convertirAAlumnoDTO(Entidad_Usuario_Alumno usuarioAlumno, Entidad_ActividadFisica actividadFisica) {
         Entidad_Usuario usuario = usuarioAlumno.getUsuario();
-    
-        // Construye el horario combinando diaSemana y hora
         String horario = actividadFisica.getDiaSemana() + " " + (actividadFisica.getHora() != null ? actividadFisica.getHora().toString() : "");
     
+        // Añadimos 'yaAsistio' por defecto como false
         return new AlumnoDTO(
+            usuarioAlumno.getIdUsuarioAlumno(),
             usuario.getNombre() + " " + usuario.getApellido(),
-            usuario.getEmail(),
             actividadFisica.getNombre(),
-            horario  // Asigna el valor generado de horario
+            usuario.getEmail(),
+            horario,
+            false // Valor por defecto
         );
     }
     
+    
+   
     
 }
 

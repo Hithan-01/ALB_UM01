@@ -1,5 +1,7 @@
 package com.demo.alb_um.Login;
 
+import java.time.LocalDate;
+
 import java.util.List;
 import java.util.Optional;
 
@@ -9,7 +11,9 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import com.demo.alb_um.DTOs.ActividadFisicaDTO;
 import com.demo.alb_um.DTOs.AdminDTO;
@@ -17,9 +21,12 @@ import com.demo.alb_um.DTOs.AlumnoDTO;
 import com.demo.alb_um.DTOs.CitaDTO;
 import com.demo.alb_um.DTOs.CoachDTO;
 import com.demo.alb_um.DTOs.TallerDTO;
+
 import com.demo.alb_um.Modulos.Admn.UsuarioAdminServicio;
 import com.demo.alb_um.Modulos.Alumno.UsuarioAlumnoServicio;
 import com.demo.alb_um.Modulos.Coach.CoachActividadServicio;
+import com.demo.alb_um.Modulos.Listas.Entidad_Lista;
+import com.demo.alb_um.Modulos.Listas.Servicio_lista;
 
 @Controller
 @RequestMapping("/portal")
@@ -29,11 +36,17 @@ public class PortalControlador {
     private final UsuarioAlumnoServicio usuarioAlumnoServicio;
     private final UsuarioAdminServicio usuarioAdminServicio;
 
-    public PortalControlador(CoachActividadServicio coachActividadServicio, UsuarioAlumnoServicio usuarioAlumnoServicio, UsuarioAdminServicio usuarioAdminServicio) {
-        this.coachActividadServicio = coachActividadServicio;
-        this.usuarioAlumnoServicio = usuarioAlumnoServicio;
-        this.usuarioAdminServicio = usuarioAdminServicio;
-    }
+    private final Servicio_lista listaServicio;
+
+public PortalControlador(CoachActividadServicio coachActividadServicio, 
+                         UsuarioAlumnoServicio usuarioAlumnoServicio, 
+                         UsuarioAdminServicio usuarioAdminServicio, 
+                         Servicio_lista listaServicio) {
+    this.coachActividadServicio = coachActividadServicio;
+    this.usuarioAlumnoServicio = usuarioAlumnoServicio;
+    this.usuarioAdminServicio = usuarioAdminServicio;
+    this.listaServicio = listaServicio; // Inyectamos el servicio lista
+}
 
     @GetMapping("/inicio")
     public String mostrarInicio(Model model) {
@@ -118,4 +131,40 @@ public class PortalControlador {
         model.addAttribute("actividad", actividad);
         return "listaAlumnos";
     }
+
+    @PostMapping("/paseLista/{idActividadFisica}")
+    public String iniciarPaseLista(@PathVariable Long idActividadFisica, Model model) {
+        // Obtener la actividad física por su ID y asegurarse de que sea un DTO
+        ActividadFisicaDTO actividadDTO = coachActividadServicio.obtenerActividadPorId(idActividadFisica);
+    
+        // Obtener la fecha actual
+       LocalDate fechaActual = LocalDate.now();
+
+        
+        // Verificar o crear una nueva lista para la actividad y fecha
+        Entidad_Lista lista = listaServicio.obtenerOCrearLista(actividadDTO, fechaActual);
+        
+        // Añadir la lista y la actividad al modelo
+        model.addAttribute("lista", lista);
+        model.addAttribute("actividad", actividadDTO);
+        
+        // Redirigir a la página de pase de lista
+        return "paseLista";
+    }
+    
+
+    @PostMapping("/guardarAsistencia/{idLista}")
+public String guardarAsistencia(@PathVariable Long idLista, @RequestParam("asistencias") List<Long> asistencias) {
+    // Obtener la lista de asistencia
+    Entidad_Lista lista = listaServicio.obtenerListaPorId(idLista);
+    
+    // Registrar la asistencia
+    listaServicio.guardarAsistencia(lista, asistencias);
+    
+    // Redirigir de nuevo a la vista del coach
+    return "redirect:/portal/inicio";
+}
+
+    
+
 }

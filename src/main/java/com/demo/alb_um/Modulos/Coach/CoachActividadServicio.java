@@ -59,14 +59,19 @@ public class CoachActividadServicio {
     private AlumnoDTO convertirAAlumnoDTO(Entidad_Usuario_Alumno usuarioAlumno, Entidad_ActividadFisica actividadFisica) {
         Entidad_Usuario usuario = usuarioAlumno.getUsuario();
         String horario = actividadFisica.getDiaSemana() + " " + (actividadFisica.getHora() != null ? actividadFisica.getHora().toString() : "");
-
+    
+        // Añadimos 'yaAsistio' por defecto como false
         return new AlumnoDTO(
+            usuarioAlumno.getIdUsuarioAlumno(),
             usuario.getNombre() + " " + usuario.getApellido(),
-            usuario.getEmail(),
             actividadFisica.getNombre(),
-            horario
+            usuario.getEmail(),
+            horario,
+            false // Valor por defecto
         );
     }
+    
+    
 
     @Autowired
     private ActividadFisicaRepositorio actividadRepositorio; // Inyecta el repositorio aquí
@@ -79,4 +84,13 @@ public class CoachActividadServicio {
             throw new NoSuchElementException("Actividad no encontrada");
         }
     }
+
+    @Autowired
+    private ActividadFisicaRepositorio actividadFisicaRepositorio;
+
+    public Entidad_ActividadFisica obtenerActividadFisicaEntidadPorId(Long idActividadFisica) {
+        return actividadFisicaRepositorio.findById(idActividadFisica)
+            .orElseThrow(() -> new NoSuchElementException("Actividad no encontrada"));
+    }
+    
 }

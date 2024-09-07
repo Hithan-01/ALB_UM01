@@ -1,20 +1,32 @@
 package com.demo.alb_um.DTOs;
 
 public class AlumnoDTO {
+    private Long idUsuarioAlumno;
     private String nombreCompleto;
     private String nombreActividadFisica;
     private String nombreCoach;
     private String horario;
+    private boolean yaAsistio;
 
     // Constructor
-    public AlumnoDTO(String nombreCompleto, String nombreActividadFisica, String nombreCoach, String horario) {
+    public AlumnoDTO(Long idUsuarioAlumno, String nombreCompleto, String nombreActividadFisica, String nombreCoach, String horario,  boolean yaAsistio) {
+        this.idUsuarioAlumno = idUsuarioAlumno;
         this.nombreCompleto = nombreCompleto;
         this.nombreActividadFisica = nombreActividadFisica;
         this.nombreCoach = nombreCoach;
         this.horario = horario;
+        this.yaAsistio= yaAsistio;
     }
 
     // Getters and setters
+    public Long getIdUsuarioAlumno() {
+        return idUsuarioAlumno;
+    }
+
+    public void setIdUsuarioAlumno(Long idUsuarioAlumno) {
+        this.idUsuarioAlumno = idUsuarioAlumno;
+    }
+
     public String getNombreCompleto() {
         return nombreCompleto;
     }
@@ -45,5 +57,14 @@ public class AlumnoDTO {
 
     public void setHorario(String horario) {
         this.horario = horario;
+    }
+
+
+    public boolean isYaAsistio() {
+        return yaAsistio;
+    }
+    
+    public void setYaAsistio(boolean yaAsistio) {
+        this.yaAsistio = yaAsistio;
     }
 }

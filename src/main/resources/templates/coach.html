@@ -37,27 +37,24 @@
             <h2>Actividades Físicas</h2>
             <table class="table table-striped">
                 <thead>
-                    <tr>
-                        <th>Nombre de la Actividad</th>
-                        <th>Grupo</th>
-                        <th>Día</th>
-                        <th>Hora</th>
-                        <th>Ver Alumnos</th>
-                    </tr>
-                </thead>
-                <tbody>
                     <tr th:each="actividad : ${coach.actividades}">
                         <td th:text="${actividad.nombre}"></td>
                         <td th:text="${actividad.grupo}"></td>
                         <td th:text="${actividad.diaSemana}"></td>
                         <td th:text="${actividad.hora}"></td>
                         <td>
-                            <a class="btn btn-primary" 
-                               th:href="@{/portal/listadealumno/{idActividadFisica}(idActividadFisica=${actividad.idActividadFisica})}">
-                               Ver Alumnos
+                            <!-- Botón para ver alumnos -->
+                            <a class="btn btn-primary" th:href="@{/portal/listadealumno/{idActividadFisica}(idActividadFisica=${actividad.idActividadFisica})}">
+                                Ver Alumnos
                             </a>
+                    
+                            <!-- Botón para pase de lista -->
+                            <form th:action="@{/portal/paseLista/{idActividadFisica}(idActividadFisica=${actividad.idActividadFisica})}" method="post">
+                                <button class="btn btn-success" type="submit">Pase de Lista</button>
+                            </form>
                         </td>
                     </tr>
+                    
                 </tbody>
             </table>
         </div>
