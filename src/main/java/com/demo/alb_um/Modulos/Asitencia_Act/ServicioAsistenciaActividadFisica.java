@@ -34,8 +34,6 @@ public class ServicioAsistenciaActividadFisica {
 
     @Autowired
 private RepositorioAsistenciaActividadFisica asistenciaRepositorio; 
-
-
 public List<AlumnoDTO> obtenerAlumnosConAsistencia(List<AlumnoDTO> alumnos, Entidad_Lista lista) {
     for (AlumnoDTO alumno : alumnos) {
         Entidad_Usuario_Alumno usuarioAlumno = new Entidad_Usuario_Alumno();

@@ -61,32 +61,37 @@ public Entidad_Lista obtenerOCrearLista(ActividadFisicaDTO actividadDTO, LocalDa
     
 @Autowired
 private RepositorioAsistenciaActividadFisica asistenciaRepositorio;
-
 public void guardarAsistencia(Entidad_Lista lista, List<Long> asistencias) {
-    // Obtener todos los alumnos inscritos en la actividad de la lista
     Set<Ent_AlumnoActividad> alumnosActividad = lista.getActividadFisica().getAlumnoActividades();
-    
+
     for (Ent_AlumnoActividad alumnoActividad : alumnosActividad) {
-        // Buscar si ya existe un registro de asistencia para el alumno y la lista
         Optional<Ent_AsistenciaActividadFisica> asistenciaExistente = asistenciaRepositorio.findByListaAndUsuarioAlumno(lista, alumnoActividad.getUsuarioAlumno());
-        
+
         Ent_AsistenciaActividadFisica asistencia;
-        
+
         if (asistenciaExistente.isPresent()) {
-            // Si ya existe, actualizar la asistencia
             asistencia = asistenciaExistente.get();
+
+            // Determinar si el alumno está presente en la lista de asistencias enviada
+            boolean estabaPresente = asistencia.isPresente();
+            boolean estaPresente = asistencias.contains(alumnoActividad.getUsuarioAlumno().getIdUsuarioAlumno());
+            
+            // Solo actualizar si ha habido un cambio
+            if (estabaPresente != estaPresente) {
+                asistencia.setPresente(estaPresente);
+                asistenciaRepositorio.save(asistencia);
+            }
         } else {
             // Si no existe, crear una nueva asistencia
             asistencia = new Ent_AsistenciaActividadFisica();
             asistencia.setLista(lista);
             asistencia.setUsuarioAlumno(alumnoActividad.getUsuarioAlumno());
+            asistencia.setPresente(asistencias.contains(alumnoActividad.getUsuarioAlumno().getIdUsuarioAlumno()));
+            asistenciaRepositorio.save(asistencia);
         }
-        
-        // Actualizar el estado de asistencia (presente o no)
-        asistencia.setPresente(asistencias.contains(alumnoActividad.getUsuarioAlumno().getIdUsuarioAlumno()));
-        asistenciaRepositorio.save(asistencia); // Guardar o actualizar la asistencia
     }
 }
+
 
 public Entidad_Lista obtenerListaPorId(Long idLista) {
     return repositorioLista.findById(idLista)

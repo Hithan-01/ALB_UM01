@@ -24,6 +24,7 @@ import com.demo.alb_um.DTOs.TallerDTO;
 
 import com.demo.alb_um.Modulos.Admn.UsuarioAdminServicio;
 import com.demo.alb_um.Modulos.Alumno.UsuarioAlumnoServicio;
+import com.demo.alb_um.Modulos.Asitencia_Act.ServicioAsistenciaActividadFisica;
 import com.demo.alb_um.Modulos.Coach.CoachActividadServicio;
 import com.demo.alb_um.Modulos.Listas.Entidad_Lista;
 import com.demo.alb_um.Modulos.Listas.Servicio_lista;
@@ -35,18 +36,22 @@ public class PortalControlador {
     private final CoachActividadServicio coachActividadServicio;
     private final UsuarioAlumnoServicio usuarioAlumnoServicio;
     private final UsuarioAdminServicio usuarioAdminServicio;
-
     private final Servicio_lista listaServicio;
+    private final ServicioAsistenciaActividadFisica asistenciaActividadFisicaServicio;
+
 
 public PortalControlador(CoachActividadServicio coachActividadServicio, 
                          UsuarioAlumnoServicio usuarioAlumnoServicio, 
                          UsuarioAdminServicio usuarioAdminServicio, 
-                         Servicio_lista listaServicio) {
+                         Servicio_lista listaServicio,
+                         ServicioAsistenciaActividadFisica asistenciaActividadFisicaServicio) {
     this.coachActividadServicio = coachActividadServicio;
     this.usuarioAlumnoServicio = usuarioAlumnoServicio;
     this.usuarioAdminServicio = usuarioAdminServicio;
     this.listaServicio = listaServicio; // Inyectamos el servicio lista
+    this.asistenciaActividadFisicaServicio = asistenciaActividadFisicaServicio; // Inyectamos el servicio de asistencia
 }
+
 
     @GetMapping("/inicio")
     public String mostrarInicio(Model model) {
@@ -133,24 +138,27 @@ public PortalControlador(CoachActividadServicio coachActividadServicio,
     }
 
     @PostMapping("/paseLista/{idActividadFisica}")
-    public String iniciarPaseLista(@PathVariable Long idActividadFisica, Model model) {
-        // Obtener la actividad física por su ID y asegurarse de que sea un DTO
-        ActividadFisicaDTO actividadDTO = coachActividadServicio.obtenerActividadPorId(idActividadFisica);
+public String iniciarPaseLista(@PathVariable Long idActividadFisica, Model model) {
+    // Obtener la actividad física por su ID
+    ActividadFisicaDTO actividadDTO = coachActividadServicio.obtenerActividadPorId(idActividadFisica);
     
-        // Obtener la fecha actual
-       LocalDate fechaActual = LocalDate.now();
+    // Obtener la fecha actual
+    LocalDate fechaActual = LocalDate.now();
 
-        
-        // Verificar o crear una nueva lista para la actividad y fecha
-        Entidad_Lista lista = listaServicio.obtenerOCrearLista(actividadDTO, fechaActual);
-        
-        // Añadir la lista y la actividad al modelo
-        model.addAttribute("lista", lista);
-        model.addAttribute("actividad", actividadDTO);
-        
-        // Redirigir a la página de pase de lista
-        return "paseLista";
-    }
+    // Verificar o crear una nueva lista para la actividad y fecha
+    Entidad_Lista lista = listaServicio.obtenerOCrearLista(actividadDTO, fechaActual);
+    
+    // Obtener la lista de alumnos con su estado de asistencia actualizado
+    List<AlumnoDTO> alumnosActualizados = asistenciaActividadFisicaServicio.obtenerAlumnosConAsistencia(actividadDTO.getAlumnos(), lista);
+    
+    // Añadir la lista y la actividad al modelo
+    model.addAttribute("lista", lista);
+    model.addAttribute("actividad", actividadDTO);
+    model.addAttribute("alumnos", alumnosActualizados);  // Añadir alumnos actualizados
+    
+    return "paseLista"; // Redirigir a la página de pase de lista
+}
+
     
 
     @PostMapping("/guardarAsistencia/{idLista}")

@@ -26,10 +26,10 @@
                     <td th:text="${alumno.horario}"></td>
                     <td>
                         <input type="checkbox" name="asistencias" th:value="${alumno.idUsuarioAlumno}" 
-                        th:checked="${alumno.yaAsistio}" 
-                        th:disabled="${alumno.yaAsistio ? true : false}" /> Asistió
-                 
-                 
+                               th:checked="${alumno.yaAsistio}" 
+                               th:disabled="${alumno.yaAsistio}" /> Asistió
+                        <!-- Campo oculto para preservar la asistencia existente -->
+                        <input type="hidden" th:if="${alumno.yaAsistio}" name="asistencias" th:value="${alumno.idUsuarioAlumno}" />
                     </td>
                 </tr>
             </tbody>
