@@ -34,7 +34,10 @@
 
                         <input type="hidden" th:if="${alumno.yaAsistio}" name="asistencias" th:value="${alumno.idUsuarioAlumno}" />
                     </td>
-                    <td th:text="${alumno.yaAsistio ? #temporals.format(alumno.fechaRegistro, 'yyyy-MM-dd HH:mm:ss') : ''}">Hora de llegada</td>
+                    <td th:text="${alumno.fechaRegistro != null ? #temporals.format(alumno.fechaRegistro, 'yyyy-MM-dd HH:mm:ss') : 'Sin registro'}">
+                        Hora de llegada
+                    </td>
+                    
 
 
 
