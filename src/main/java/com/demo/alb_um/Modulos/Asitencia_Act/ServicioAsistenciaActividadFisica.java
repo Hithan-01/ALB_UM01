@@ -45,8 +45,10 @@ public List<AlumnoDTO> obtenerAlumnosConAsistencia(List<AlumnoDTO> alumnos, Enti
         if (asistencia.isPresent()) {
             Ent_AsistenciaActividadFisica asistenciaExistente = asistencia.get();
             alumno.setYaAsistio(asistenciaExistente.isPresente());
+            alumno.setFechaRegistro(asistenciaExistente.getFechaRegistro());  // Asegúrate de que se está estableciendo la fecha de registro correctamente
         } else {
             alumno.setYaAsistio(false);  // Si no hay asistencia registrada, permitir marcar
+            alumno.setFechaRegistro(null); // Si no hay fecha de registro, se establece en null
         }
     }
     return alumnos;

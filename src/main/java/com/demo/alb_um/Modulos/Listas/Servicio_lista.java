@@ -2,15 +2,14 @@ package com.demo.alb_um.Modulos.Listas;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
 import com.demo.alb_um.DTOs.ActividadFisicaDTO;
-
 import com.demo.alb_um.Modulos.Actividad_Fisica.Entidad_ActividadFisica;
 import com.demo.alb_um.Modulos.Alumno_Actividad.Ent_AlumnoActividad;
 import com.demo.alb_um.Modulos.Asitencia_Act.Ent_AsistenciaActividadFisica;
 import com.demo.alb_um.Modulos.Asitencia_Act.RepositorioAsistenciaActividadFisica;
-
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+
 import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
@@ -61,7 +60,7 @@ public Entidad_Lista obtenerOCrearLista(ActividadFisicaDTO actividadDTO, LocalDa
     
 @Autowired
 private RepositorioAsistenciaActividadFisica asistenciaRepositorio;
-public void guardarAsistencia(Entidad_Lista lista, List<Long> asistencias) {
+public void guardarAsistencia(Entidad_Lista lista, List<Long> asistencias, LocalDateTime horaActual) {
     Set<Ent_AlumnoActividad> alumnosActividad = lista.getActividadFisica().getAlumnoActividades();
 
     for (Ent_AlumnoActividad alumnoActividad : alumnosActividad) {
@@ -72,22 +71,28 @@ public void guardarAsistencia(Entidad_Lista lista, List<Long> asistencias) {
         if (asistenciaExistente.isPresent()) {
             asistencia = asistenciaExistente.get();
 
-            // Determinar si el alumno está presente en la lista de asistencias enviada
-            boolean estabaPresente = asistencia.isPresente();
+            // Verificar si el alumno está en la lista de asistencias enviada (marcado como presente)
             boolean estaPresente = asistencias.contains(alumnoActividad.getUsuarioAlumno().getIdUsuarioAlumno());
-            
-            // Solo actualizar si ha habido un cambio
-            if (estabaPresente != estaPresente) {
-                asistencia.setPresente(estaPresente);
+
+            // Solo registrar la hora actual si la fecha de registro es nula y el alumno está presente
+            if (estaPresente && asistencia.getFechaRegistro() == null) {
+                asistencia.setFechaRegistro(horaActual);  // Registrar la hora actual solo si no se ha registrado antes y está presente
+            }
+
+            // Actualizar el estado de "presente" sin importar la hora
+            asistencia.setPresente(estaPresente);  // Se marca como presente si está en la lista de presentes
+
+            asistenciaRepositorio.save(asistencia);
+        } else {
+            // Si no existe asistencia previa, crear una nueva solo si el alumno está presente
+            if (asistencias.contains(alumnoActividad.getUsuarioAlumno().getIdUsuarioAlumno())) {
+                asistencia = new Ent_AsistenciaActividadFisica();
+                asistencia.setLista(lista);
+                asistencia.setUsuarioAlumno(alumnoActividad.getUsuarioAlumno());
+                asistencia.setFechaRegistro(horaActual);  // Registrar la hora actual
+                asistencia.setPresente(true);  // Marcar como presente sin importar la hora
                 asistenciaRepositorio.save(asistencia);
             }
-        } else {
-            // Si no existe, crear una nueva asistencia
-            asistencia = new Ent_AsistenciaActividadFisica();
-            asistencia.setLista(lista);
-            asistencia.setUsuarioAlumno(alumnoActividad.getUsuarioAlumno());
-            asistencia.setPresente(asistencias.contains(alumnoActividad.getUsuarioAlumno().getIdUsuarioAlumno()));
-            asistenciaRepositorio.save(asistencia);
         }
     }
 }

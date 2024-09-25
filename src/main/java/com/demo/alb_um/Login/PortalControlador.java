@@ -29,6 +29,8 @@ import com.demo.alb_um.Modulos.Coach.CoachActividadServicio;
 import com.demo.alb_um.Modulos.Listas.Entidad_Lista;
 import com.demo.alb_um.Modulos.Listas.Servicio_lista;
 
+import java.time.LocalDateTime;
+
 @Controller
 @RequestMapping("/portal")
 public class PortalControlador {
@@ -138,37 +140,44 @@ public PortalControlador(CoachActividadServicio coachActividadServicio,
     }
 
     @PostMapping("/paseLista/{idActividadFisica}")
-public String iniciarPaseLista(@PathVariable Long idActividadFisica, Model model) {
-    // Obtener la actividad física por su ID
-    ActividadFisicaDTO actividadDTO = coachActividadServicio.obtenerActividadPorId(idActividadFisica);
+    public String iniciarPaseLista(@PathVariable Long idActividadFisica, Model model) {
+        // Obtener la actividad física por su ID
+        ActividadFisicaDTO actividadDTO = coachActividadServicio.obtenerActividadPorId(idActividadFisica);
+        
+        // Obtener la fecha actual
+        LocalDate fechaActual = LocalDate.now();
     
-    // Obtener la fecha actual
-    LocalDate fechaActual = LocalDate.now();
+        // Verificar o crear una nueva lista para la actividad y fecha
+        Entidad_Lista lista = listaServicio.obtenerOCrearLista(actividadDTO, fechaActual);
+        
+        // Obtener la lista de alumnos con su estado de asistencia actualizado
+        List<AlumnoDTO> alumnosActualizados = asistenciaActividadFisicaServicio.obtenerAlumnosConAsistencia(actividadDTO.getAlumnos(), lista);
+    
+        // *** Aquí agregas el System.out.println para verificar la fecha de registro ***
+        alumnosActualizados.forEach(alumno -> System.out.println("Fecha Registro: " + alumno.getFechaRegistro()));
+    
+        // Añadir la lista y la actividad al modelo
+        model.addAttribute("lista", lista);
+        model.addAttribute("actividad", actividadDTO);
+        model.addAttribute("alumnos", alumnosActualizados);  // Añadir alumnos actualizados
+    
+        return "paseLista"; // Redirigir a la página de pase de lista
+    }
+    
 
-    // Verificar o crear una nueva lista para la actividad y fecha
-    Entidad_Lista lista = listaServicio.obtenerOCrearLista(actividadDTO, fechaActual);
-    
-    // Obtener la lista de alumnos con su estado de asistencia actualizado
-    List<AlumnoDTO> alumnosActualizados = asistenciaActividadFisicaServicio.obtenerAlumnosConAsistencia(actividadDTO.getAlumnos(), lista);
-    
-    // Añadir la lista y la actividad al modelo
-    model.addAttribute("lista", lista);
-    model.addAttribute("actividad", actividadDTO);
-    model.addAttribute("alumnos", alumnosActualizados);  // Añadir alumnos actualizados
-    
-    return "paseLista"; // Redirigir a la página de pase de lista
-}
-
     
 
-    @PostMapping("/guardarAsistencia/{idLista}")
+@PostMapping("/guardarAsistencia/{idLista}")
 public String guardarAsistencia(@PathVariable Long idLista, @RequestParam("asistencias") List<Long> asistencias) {
     // Obtener la lista de asistencia
     Entidad_Lista lista = listaServicio.obtenerListaPorId(idLista);
-    
-    // Registrar la asistencia
-    listaServicio.guardarAsistencia(lista, asistencias);
-    
+
+    // Obtener la hora actual
+    LocalDateTime horaActual = LocalDateTime.now();
+
+    // Registrar la asistencia con la hora actual
+    listaServicio.guardarAsistencia(lista, asistencias, horaActual);
+
     // Redirigir de nuevo a la vista del coach
     return "redirect:/portal/inicio";
 }

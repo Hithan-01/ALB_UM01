@@ -1,4 +1,6 @@
 package com.demo.alb_um.Modulos.Asitencia_Act;
+import java.time.LocalDateTime;
+
 import com.demo.alb_um.Modulos.Alumno.Entidad_Usuario_Alumno;
 import com.demo.alb_um.Modulos.Listas.Entidad_Lista;
 import com.fasterxml.jackson.annotation.JsonBackReference;
@@ -16,6 +18,10 @@ public class Ent_AsistenciaActividadFisica {
     
     @Column(name = "presente")
 private boolean presente;
+
+@Column(name = "fecha_registro")
+private LocalDateTime fechaRegistro;
+
 
     @ManyToOne
     @JoinColumn(name = "id_lista")
@@ -61,4 +67,12 @@ private boolean presente;
     public void setPresente(boolean presente) {
         this.presente = presente;
     }
+    public LocalDateTime getFechaRegistro() {
+        return fechaRegistro;
+    }
+    
+    public void setFechaRegistro(LocalDateTime fechaRegistro) {
+        this.fechaRegistro = fechaRegistro;
+    }
+    
 }

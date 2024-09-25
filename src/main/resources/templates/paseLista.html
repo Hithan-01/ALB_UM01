@@ -18,6 +18,7 @@
                     <th>Nombre Completo</th>
                     <th>Horario</th>
                     <th>Asistencia</th>
+                    <th>Hora de Registro</th>
                 </tr>
             </thead>
             <tbody>
@@ -28,9 +29,15 @@
                         <input type="checkbox" name="asistencias" th:value="${alumno.idUsuarioAlumno}" 
                                th:checked="${alumno.yaAsistio}" 
                                th:disabled="${alumno.yaAsistio}" /> Asistió
-                        <!-- Campo oculto para preservar la asistencia existente -->
+                       
+                        <input type="checkbox" name="faltas" th:value="${alumno.idUsuarioAlumno}" th:checked="${!alumno.yaAsistio}" disabled /> Falta
+
                         <input type="hidden" th:if="${alumno.yaAsistio}" name="asistencias" th:value="${alumno.idUsuarioAlumno}" />
                     </td>
+                    <td th:text="${alumno.yaAsistio ? #temporals.format(alumno.fechaRegistro, 'yyyy-MM-dd HH:mm:ss') : ''}">Hora de llegada</td>
+
+
+
                 </tr>
             </tbody>
         </table>
