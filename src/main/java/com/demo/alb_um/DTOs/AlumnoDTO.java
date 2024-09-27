@@ -9,10 +9,13 @@ public class AlumnoDTO {
     private String nombreCoach;
     private String horario;
     private boolean yaAsistio;
-    private LocalDateTime fechaRegistro; 
+    private LocalDateTime fechaRegistro;
+    private String facultad;
+    private String residencia;
+    private String semestre;
 
     // Constructor
-    public AlumnoDTO(Long idUsuarioAlumno, String nombreCompleto, String nombreActividadFisica, String nombreCoach, String horario, boolean yaAsistio, LocalDateTime fechaRegistro) {
+    public AlumnoDTO(Long idUsuarioAlumno, String nombreCompleto, String nombreActividadFisica, String nombreCoach, String horario, boolean yaAsistio, LocalDateTime fechaRegistro, String facultad, String residencia, String semestre) {
         this.idUsuarioAlumno = idUsuarioAlumno;
         this.nombreCompleto = nombreCompleto;
         this.nombreActividadFisica = nombreActividadFisica;
@@ -20,6 +23,9 @@ public class AlumnoDTO {
         this.horario = horario;
         this.yaAsistio = yaAsistio;
         this.fechaRegistro = fechaRegistro;
+        this.facultad = facultad;
+        this.residencia = residencia;
+        this.semestre = semestre;
     }
 
     // Getters and setters
@@ -77,5 +83,29 @@ public class AlumnoDTO {
 
     public void setFechaRegistro(LocalDateTime fechaRegistro) {
         this.fechaRegistro = fechaRegistro;
+    }
+
+    public String getFacultad() {
+        return facultad;
+    }
+
+    public void setFacultad(String facultad) {
+        this.facultad = facultad;
+    }
+
+    public String getResidencia() {
+        return residencia;
+    }
+
+    public void setResidencia(String residencia) {
+        this.residencia = residencia;
+    }
+
+    public String getSemestre() {
+        return semestre;
+    }
+
+    public void setSemestre(String semestre) {
+        this.semestre = semestre;
     }
 }

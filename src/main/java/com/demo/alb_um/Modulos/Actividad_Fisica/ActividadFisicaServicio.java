@@ -71,17 +71,22 @@ private AlumnoDTO convertirAAlumnoDTO(Entidad_Usuario_Alumno usuarioAlumno, Enti
     boolean yaAsistio = asistencia != null && asistencia.isPresente();
     LocalDateTime fechaRegistro = asistencia != null ? asistencia.getFechaRegistro() : null;
 
-    // Retornamos el DTO con todos los campos, incluyendo 'yaAsistio' y 'fechaRegistro'
+    // Retornamos el DTO con los nuevos campos: residencia, semestre, facultad
     return new AlumnoDTO(
         usuarioAlumno.getIdUsuarioAlumno(),
-        usuario.getNombre() + " " + usuario.getApellido(),
-        actividadFisica.getNombre(),
-        usuario.getEmail(),
-        horario,
+        usuario.getNombre() + " " + usuario.getApellido(),  // Nombre completo
+        actividadFisica.getNombre(),  // Nombre de la actividad física
+        usuario.getEmail(),  // Coach (esto puede depender de tu lógica, ajústalo si es necesario)
+        horario,  // Horario de la actividad física
         yaAsistio,  // Ya asistió
-        fechaRegistro  // Fecha de registro obtenida correctamente
+        fechaRegistro,  // Fecha de registro
+        usuarioAlumno.getFacultad(),  // Facultad
+        usuarioAlumno.getResidencia(),  // Residencia
+        usuarioAlumno.getSemestre()  // Semestre
     );
 }
+
+
 
    
     

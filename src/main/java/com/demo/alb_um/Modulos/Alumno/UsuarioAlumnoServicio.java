@@ -19,7 +19,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.sql.Time;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -41,6 +43,9 @@ public Optional<AlumnoDTO> obtenerInformacionAlumnoPorUserName(String userName) 
         Entidad_Usuario_Alumno alumno = alumnoOpt.get();
         Long idUsuarioAlumno = alumno.getIdUsuarioAlumno();
         String nombreCompleto = alumno.getUsuario().getNombre() + " " + alumno.getUsuario().getApellido();
+        String facultad = alumno.getFacultad();
+        String residencia = alumno.getResidencia();
+        String semestre = alumno.getSemestre();
 
         // Obtener la actividad física asociada al alumno
         Optional<Entidad_ActividadFisica> actividadFisicaOpt = alumno.getAlumnoActividades().stream()
@@ -82,15 +87,17 @@ public Optional<AlumnoDTO> obtenerInformacionAlumnoPorUserName(String userName) 
                 nombreCoach,
                 horario,
                 yaAsistio,
-                fechaRegistro
+                fechaRegistro,
+                facultad,  // Nuevo campo agregado
+                residencia,  // Nuevo campo agregado
+                semestre  // Nuevo campo agregado
         ));
     }
 
     // Si no se encuentra el alumno, devolver Optional.empty()
     return Optional.empty();
 }
-
-    
+ 
      
 
     @Autowired
@@ -99,15 +106,25 @@ public Optional<AlumnoDTO> obtenerInformacionAlumnoPorUserName(String userName) 
     
 
     private CitaDTO convertirACitaDTO(Ent_Cita cita) {
-        return new CitaDTO(
-            cita.getUsuarioAdmin().getServicio().getNombre(), 
-            cita.getHorarioServicio().getDiaSemana(),
-            cita.getHorarioServicio().getHora(),
-            cita.getEstadoAsistencia(),
-            cita.getVerificacion(),
-            cita.getAutorizadoPor()
-        );
+    LocalDate diaSemana = null;
+    LocalTime hora = null;
+
+    // Verificar si el HorarioServicio es nulo
+    if (cita.getHorarioServicio() != null) {
+        diaSemana = cita.getHorarioServicio().getDiaSemana();
+        hora = cita.getHorarioServicio().getHora();
     }
+
+    return new CitaDTO(
+        cita.getUsuarioAdmin().getServicio().getNombre(), 
+        diaSemana,
+        hora,
+        cita.getEstadoAsistencia(),
+        cita.getVerificacion(),
+        cita.getAutorizadoPor()
+    );
+}
+
 
     @Autowired
     private InscripcionTallerRepositorio inscripcionTallerRepositorio;
@@ -166,5 +183,46 @@ public Optional<AlumnoDTO> obtenerInformacionAlumnoPorUserName(String userName) 
         int progreso = (int) (((double) totalAsistencias / 4) * 100);
         return Math.min(progreso, 100); 
     }
+
+
+ 
+
+    public Optional<AlumnoDTO> buscarAlumnoPorUsername(String search) {
+        // Buscar al alumno por username
+        Optional<Entidad_Usuario_Alumno> alumnoOpt = usuarioAlumnoRepositorio.findByUsuario_UserName(search);
+    
+        return alumnoOpt.map(alumno -> new AlumnoDTO(
+            alumno.getIdUsuarioAlumno(),
+            alumno.getUsuario().getNombre() + " " + alumno.getUsuario().getApellido(),
+            null, // No es necesario por ahora (nombreActividadFisica)
+            null, // No es necesario por ahora (nombreCoach)
+            null, // No es necesario por ahora (horario)
+            false, // No es necesario por ahora (yaAsistio)
+            null,  // No es necesario por ahora (fechaRegistro)
+            alumno.getFacultad(),
+            alumno.getResidencia(),
+            alumno.getSemestre()
+        ));
+    }
+    
+    public Optional<AlumnoDTO> buscarAlumnoPorId(Long alumnoId) {
+        Optional<Entidad_Usuario_Alumno> alumnoOpt = usuarioAlumnoRepositorio.findById(alumnoId);
+        
+        return alumnoOpt.map(alumno -> new AlumnoDTO(
+            alumno.getIdUsuarioAlumno(),
+            alumno.getUsuario().getNombre() + " " + alumno.getUsuario().getApellido(),
+            null, // Otros campos opcionales que no sean relevantes
+            null,
+            null,
+            false,
+            null,
+            alumno.getFacultad(),
+            alumno.getResidencia(),
+            alumno.getSemestre()
+        ));
+    }
     
 }
+
+    
+

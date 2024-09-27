@@ -2,11 +2,11 @@ package com.demo.alb_um.Modulos.Admn;
 
 import com.demo.alb_um.DTOs.AdminDTO;
 import com.demo.alb_um.DTOs.CitaDTO;
-
-import com.demo.alb_um.Modulos.Citas.Ent_Cita;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -19,32 +19,43 @@ public class UsuarioAdminServicio {
 
 
 
-    public Optional<AdminDTO> obtenerInformacionAdminPorUserName(String userName) {
-        Optional<Ent_UsuarioAdmin> adminOpt = usuarioAdminRepositorio.findByUsuario_UserName(userName);
+   public Optional<AdminDTO> obtenerInformacionAdminPorUserName(String userName) {
+    Optional<Ent_UsuarioAdmin> adminOpt = usuarioAdminRepositorio.findByUsuario_UserName(userName);
 
-        if (adminOpt.isPresent()) {
-            Ent_UsuarioAdmin admin = adminOpt.get();
-            String nombreCompleto = admin.getUsuario().getNombre() + " " + admin.getUsuario().getApellido();
-            String cargoServicio = admin.getCargoServicio();
+    if (adminOpt.isPresent()) {
+        Ent_UsuarioAdmin admin = adminOpt.get();
+        String nombreCompleto = admin.getUsuario().getNombre() + " " + admin.getUsuario().getApellido();
+        String cargoServicio = admin.getCargoServicio();
 
-            List<CitaDTO> citas = admin.getCitas().stream()
-                    .map(this::convertirACitaDTO)
-                    .collect(Collectors.toList());
+        // Convertir las citas a CitaDTO y manejar correctamente los horarios nulos
+        List<CitaDTO> citas = admin.getCitas().stream()
+                .map(cita -> {
+                    // Verificar si HorarioServicio es nulo
+                    LocalDate diaSemana = null;
+                    LocalTime hora = null;
+                    if (cita.getHorarioServicio() != null) {
+                        diaSemana = cita.getHorarioServicio().getDiaSemana();
+                        hora = cita.getHorarioServicio().getHora();
+                    }
 
-            return Optional.of(new AdminDTO(nombreCompleto, cargoServicio, citas));
-        }
+                    // Crear y devolver CitaDTO
+                    return new CitaDTO(
+                        cita.getUsuarioAdmin().getServicio().getNombre(), 
+                        diaSemana,
+                        hora,
+                        cita.getEstadoAsistencia(),
+                        cita.getVerificacion(),
+                        cita.getAutorizadoPor()
+                    );
+                })
+                .collect(Collectors.toList());
 
-        return Optional.empty();
+        return Optional.of(new AdminDTO(nombreCompleto, cargoServicio, citas));
     }
 
-    private CitaDTO convertirACitaDTO(Ent_Cita cita) {
-        return new CitaDTO(
-            cita.getUsuarioAdmin().getServicio().getNombre(), // Aquí se obtiene el nombre de la cita desde la entidad
-            cita.getHorarioServicio().getDiaSemana(),
-            cita.getHorarioServicio().getHora(),
-            cita.getEstadoAsistencia(),
-            cita.getVerificacion(),
-            cita.getAutorizadoPor()
-        );
-    }
+    return Optional.empty();
+}
+
+
+    
 }
