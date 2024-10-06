@@ -7,78 +7,96 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.Optional;
+import java.security.Principal;
 
 import com.demo.alb_um.Modulos.Admn.Ent_UsuarioAdmin;
 import com.demo.alb_um.Modulos.Admn.UsuarioAdminRepositorio;
-// Importa tu servicio y DTO
 import com.demo.alb_um.Modulos.Alumno.UsuarioAlumnoServicio;
 import com.demo.alb_um.Modulos.Citas.CitaServicio;
 import com.demo.alb_um.DTOs.AlumnoDTO;
-import java.security.Principal;
-
 
 @Controller
-@RequestMapping("/admin")
+@RequestMapping("/portal/admin")
 public class AdminControlador {
 
-   private final UsuarioAlumnoServicio usuarioAlumnoServicio;
-    private final CitaServicio citasServicio;
+    private final UsuarioAlumnoServicio usuarioAlumnoServicio;
+    private final CitaServicio citaServicio;
     private final UsuarioAdminRepositorio usuarioAdminRepositorio;
 
     @Autowired
-    public AdminControlador(UsuarioAlumnoServicio usuarioAlumnoServicio, CitaServicio citaServicio, UsuarioAdminRepositorio usuarioAdminRepositorio) {
+    public AdminControlador(UsuarioAlumnoServicio usuarioAlumnoServicio, 
+                            CitaServicio citaServicio, 
+                            UsuarioAdminRepositorio usuarioAdminRepositorio) {
         this.usuarioAlumnoServicio = usuarioAlumnoServicio;
-        this.citasServicio = citaServicio;
+        this.citaServicio = citaServicio;
         this.usuarioAdminRepositorio = usuarioAdminRepositorio;
     }
 
-    @GetMapping("/buscarAlumno")
-    public String buscarAlumno(@RequestParam("search") String search, Model model) {
-        Optional<AlumnoDTO> alumnoOpt = usuarioAlumnoServicio.buscarAlumnoPorUsername(search);
-        if (alumnoOpt.isPresent()) {
-            AlumnoDTO alumno = alumnoOpt.get();
-            model.addAttribute("alumno", alumno);
-            return "verAlumno"; // Redirige a la vista donde se muestran los datos del alumno
+    // Buscar Alumno - Para administradores que no sean de Antropometría
+    @GetMapping("/general/buscarAlumno")
+    public String buscarAlumno(@RequestParam("search") String search, Model model, Principal principal) {
+        Optional<Ent_UsuarioAdmin> adminOpt = usuarioAdminRepositorio.findByUsuario_UserName(principal.getName());
+        if (adminOpt.isPresent() && !esAdminAntropometria(adminOpt.get())) {
+            Optional<AlumnoDTO> alumnoOpt = usuarioAlumnoServicio.buscarAlumnoPorUsername(search);
+            if (alumnoOpt.isPresent()) {
+                model.addAttribute("alumno", alumnoOpt.get());
+                return "verAlumno"; // Página de visualización de datos del alumno
+            } else {
+                model.addAttribute("error", "Alumno no encontrado");
+            }
         } else {
-            model.addAttribute("error", "Alumno no encontrado");
-            return "buscarAlumno"; // Si no se encuentra el alumno, regresa a la misma página con un mensaje de error
+            model.addAttribute("error", "No tienes permiso para realizar esta acción.");
         }
+        return "error";
     }
 
-    
-    @PostMapping("/generarAsistencia")
-public String generarAsistencia(@RequestParam("alumnoId") Long alumnoId, 
-                                @RequestParam("estadoAsistencia") String estadoAsistencia, 
-                                Model model, Principal principal) {
-    // Obtener información del alumno basado en su ID
-    Optional<AlumnoDTO> alumnoOpt = usuarioAlumnoServicio.buscarAlumnoPorId(alumnoId);
-    
-    if (alumnoOpt.isPresent()) {
-        AlumnoDTO alumno = alumnoOpt.get();
-        
-        // Obtener información del administrador actual usando el principal (nombre de usuario)
-        String usernameAdmin = principal.getName();
-        Optional<Ent_UsuarioAdmin> adminOpt = usuarioAdminRepositorio.findByUsuario_UserName(usernameAdmin);
-        
-        if (adminOpt.isPresent()) {
+    @PostMapping("/general/generarAsistencia")
+    public String generarAsistencia(@RequestParam("alumnoId") Long alumnoId, 
+                                    @RequestParam("estadoAsistencia") String estadoAsistencia, 
+                                    Model model, Principal principal) {
+        Optional<Ent_UsuarioAdmin> adminOpt = usuarioAdminRepositorio.findByUsuario_UserName(principal.getName());
+        if (adminOpt.isPresent() && !esAdminAntropometria(adminOpt.get())) {
+            Optional<AlumnoDTO> alumnoOpt = usuarioAlumnoServicio.buscarAlumnoPorId(alumnoId);
+            if (alumnoOpt.isPresent()) {
+                AlumnoDTO alumno = alumnoOpt.get();
+                citaServicio.generarCita(adminOpt.get(), alumno.getIdUsuarioAlumno(), estadoAsistencia);
+                model.addAttribute("mensaje", "Asistencia generada correctamente.");
+                return "resultadoAsistencia";
+            } else {
+                model.addAttribute("error", "Alumno no encontrado.");
+            }
+        } else {
+            model.addAttribute("error", "No tienes permiso para realizar esta acción.");
+        }
+        return "error";
+    }
+
+    // Validar Cita - Exclusivo para administradores de Antropometría
+    @PostMapping("/antropometria/validarCita")
+    public String validarCita(@RequestParam("citaId") Long citaId, RedirectAttributes redirectAttributes, Principal principal) {
+        Optional<Ent_UsuarioAdmin> adminOpt = usuarioAdminRepositorio.findByUsuario_UserName(principal.getName());
+
+        if (adminOpt.isPresent() && esAdminAntropometria(adminOpt.get())) {
             Ent_UsuarioAdmin admin = adminOpt.get();
-            
-            // Generar la cita para el alumno en el servicio del administrador
-            citasServicio.generarCita(admin, alumno.getIdUsuarioAlumno(), estadoAsistencia);
-            
-            model.addAttribute("mensaje", "Asistencia generada correctamente para el alumno: " + alumno.getNombreCompleto());
+
+            try {
+                citaServicio.validarCita(citaId, admin);
+                redirectAttributes.addFlashAttribute("mensajeExito", "Cita validada correctamente.");
+            } catch (Exception e) {
+                redirectAttributes.addFlashAttribute("mensajeError", "Ocurrió un error al validar la cita.");
+            }
         } else {
-            model.addAttribute("error", "No se encontró el administrador.");
+            redirectAttributes.addFlashAttribute("mensajeError", "No tienes permiso para realizar esta acción.");
         }
-    } else {
-        model.addAttribute("error", "Alumno no encontrado.");
+        
+        return "redirect:/portal/inicio";
     }
-    return "resultadoAsistencia"; // Página que muestra el resultado
-}
 
-    
-
-
+    // Método compartido para verificar si un admin es de Antropometría
+    private boolean esAdminAntropometria(Ent_UsuarioAdmin admin) {
+        return "Antropometria".equals(admin.getServicio().getNombre());
+    }
 }

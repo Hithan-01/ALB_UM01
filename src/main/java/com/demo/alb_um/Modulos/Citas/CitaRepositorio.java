@@ -15,4 +15,6 @@ public interface CitaRepositorio extends JpaRepository<Ent_Cita, Long> {
     // Método para obtener citas no verificadas
 List<Ent_Cita> findByUsuarioAlumno_Usuario_UserNameAndVerificacionFalse(String userName);
 
+List<Ent_Cita> findByUsuarioAdmin_Servicio_IdServicioAndVerificacionFalse(Long servicioId);
+
 }

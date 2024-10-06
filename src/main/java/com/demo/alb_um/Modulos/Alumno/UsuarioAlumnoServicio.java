@@ -1,27 +1,20 @@
 package com.demo.alb_um.Modulos.Alumno;
 
 import com.demo.alb_um.DTOs.AlumnoDTO;
+import com.demo.alb_um.DTOs.CitaDTO;
+import com.demo.alb_um.DTOs.TallerInscripcionDTO;
 import com.demo.alb_um.Modulos.Asitencia_Act.Ent_AsistenciaActividadFisica;
 import com.demo.alb_um.Modulos.Asitencia_Act.RepositorioAsistenciaActividadFisica;
 import com.demo.alb_um.Modulos.Alumno_Actividad.Ent_AlumnoActividad;
-
+import com.demo.alb_um.Modulos.Actividad_Fisica.Entidad_ActividadFisica;
 import com.demo.alb_um.Modulos.Citas.CitaRepositorio;
 import com.demo.alb_um.Modulos.Citas.Ent_Cita;
-
-import com.demo.alb_um.Modulos.Actividad_Fisica.Entidad_ActividadFisica;
-import com.demo.alb_um.Modulos.Coach.Ent_CoachActividad;
 import com.demo.alb_um.Modulos.Inscripcion_Taller.Ent_InscripcionTaller;
 import com.demo.alb_um.Modulos.Inscripcion_Taller.InscripcionTallerRepositorio;
-import com.demo.alb_um.Modulos.Listas.Entidad_Lista;
-import com.demo.alb_um.DTOs.CitaDTO;
-import com.demo.alb_um.DTOs.TallerDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
 import java.sql.Time;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -31,198 +24,153 @@ public class UsuarioAlumnoServicio {
 
     @Autowired
     private UsuarioAlumnoRepositorio usuarioAlumnoRepositorio;
-  
+
     @Autowired
-private RepositorioAsistenciaActividadFisica asistenciaRepositorio; 
+    private RepositorioAsistenciaActividadFisica asistenciaRepositorio;
 
-public Optional<AlumnoDTO> obtenerInformacionAlumnoPorUserName(String userName) {
-    // Obtener el alumno basado en su nombre de usuario
-    Optional<Entidad_Usuario_Alumno> alumnoOpt = usuarioAlumnoRepositorio.findByUsuario_UserName(userName);
+    @Autowired
+    private CitaRepositorio citaRepositorio;
 
-    if (alumnoOpt.isPresent()) {
-        Entidad_Usuario_Alumno alumno = alumnoOpt.get();
+    @Autowired
+    private InscripcionTallerRepositorio inscripcionTallerRepositorio;
+
+    // Obtener información completa del alumno por nombre de usuario
+    public Optional<AlumnoDTO> obtenerInformacionAlumnoPorUserName(String userName) {
+        return usuarioAlumnoRepositorio.findByUsuario_UserName(userName)
+                .map(this::convertirAAlumnoDTOConActividad);
+    }
+
+    // Convertir una entidad de alumno en un DTO con la actividad física asociada y la asistencia
+    private AlumnoDTO convertirAAlumnoDTOConActividad(Entidad_Usuario_Alumno alumno) {
         Long idUsuarioAlumno = alumno.getIdUsuarioAlumno();
         String nombreCompleto = alumno.getUsuario().getNombre() + " " + alumno.getUsuario().getApellido();
         String facultad = alumno.getFacultad();
         String residencia = alumno.getResidencia();
         String semestre = alumno.getSemestre();
 
-        // Obtener la actividad física asociada al alumno
-        Optional<Entidad_ActividadFisica> actividadFisicaOpt = alumno.getAlumnoActividades().stream()
-                .findFirst()  // Si el alumno está inscrito en una sola actividad
+        Optional<Entidad_ActividadFisica> actividadOpt = alumno.getAlumnoActividades().stream()
+                .findFirst()
                 .map(Ent_AlumnoActividad::getActividadFisica);
 
-        String nombreActividadFisica = actividadFisicaOpt.map(Entidad_ActividadFisica::getNombre).orElse("No inscrito");
-        String diaSemana = actividadFisicaOpt.map(Entidad_ActividadFisica::getDiaSemana).orElse("N/A");
-        Time hora = actividadFisicaOpt.map(Entidad_ActividadFisica::getHora).orElse(null);
-        String horario = diaSemana + " " + (hora != null ? hora.toString() : "");
+        String nombreActividad = actividadOpt.map(Entidad_ActividadFisica::getNombre).orElse("No inscrito");
+        String horario = actividadOpt.map(this::obtenerHorarioDeActividad).orElse("N/A");
+        String nombreCoach = obtenerNombreCoach(actividadOpt);
 
-        // Obtener el nombre del coach, si está asignado
-        String nombreCoach = actividadFisicaOpt.flatMap(actividadFisica -> actividadFisica.getCoachActividades().stream()
+        boolean yaAsistio = obtenerAsistenciaAlumno(actividadOpt, alumno);
+        LocalDateTime fechaRegistro = obtenerFechaRegistroAsistencia(actividadOpt, alumno);
+
+        return new AlumnoDTO(idUsuarioAlumno, nombreCompleto, nombreActividad, nombreCoach, horario,
+                yaAsistio, fechaRegistro, facultad, residencia, semestre);
+    }
+
+    // Obtener el horario de la actividad física
+    private String obtenerHorarioDeActividad(Entidad_ActividadFisica actividad) {
+        String diaSemana = actividad.getDiaSemana();
+        Time hora = actividad.getHora();
+        return diaSemana + " " + (hora != null ? hora.toString() : "");
+    }
+
+    // Obtener el nombre del coach
+    private String obtenerNombreCoach(Optional<Entidad_ActividadFisica> actividadOpt) {
+        return actividadOpt.flatMap(actividad -> actividad.getCoachActividades().stream()
                 .findFirst()
-                .map(Ent_CoachActividad::getUsuario)
-                .map(usuario -> usuario.getNombre())
-        ).orElse("Sin Coach");
-
-        // Buscar la lista más reciente de la actividad física
-        Optional<Entidad_Lista> listaOpt = actividadFisicaOpt.flatMap(actividadFisica ->
-                actividadFisica.getListas().stream()
-                .findFirst()  // Aquí puedes ajustar la lógica si manejas varias listas
-        );
-
-        // Buscar la asistencia del alumno en la lista más reciente
-        Optional<Ent_AsistenciaActividadFisica> asistenciaOpt = listaOpt.flatMap(lista ->
-                asistenciaRepositorio.findByListaAndUsuarioAlumno(lista, alumno)
-        );
-
-        // Verificar si el alumno ya asistió y obtener la fecha de registro
-        boolean yaAsistio = asistenciaOpt.map(Ent_AsistenciaActividadFisica::isPresente).orElse(false);
-        LocalDateTime fechaRegistro = asistenciaOpt.map(Ent_AsistenciaActividadFisica::getFechaRegistro).orElse(null);
-
-        // Devolver el DTO con la información del alumno
-        return Optional.of(new AlumnoDTO(
-                idUsuarioAlumno,
-                nombreCompleto,
-                nombreActividadFisica,
-                nombreCoach,
-                horario,
-                yaAsistio,
-                fechaRegistro,
-                facultad,  // Nuevo campo agregado
-                residencia,  // Nuevo campo agregado
-                semestre  // Nuevo campo agregado
-        ));
+                .map(coachActividad -> coachActividad.getUsuario().getNombre()))
+                .orElse("Sin Coach");
     }
 
-    // Si no se encuentra el alumno, devolver Optional.empty()
-    return Optional.empty();
-}
- 
-     
-
-    @Autowired
-    private CitaRepositorio citaRepositorio;
-
-    
-
-    private CitaDTO convertirACitaDTO(Ent_Cita cita) {
-    LocalDate diaSemana = null;
-    LocalTime hora = null;
-
-    // Verificar si el HorarioServicio es nulo
-    if (cita.getHorarioServicio() != null) {
-        diaSemana = cita.getHorarioServicio().getDiaSemana();
-        hora = cita.getHorarioServicio().getHora();
+    // Obtener la asistencia del alumno a la actividad más reciente
+    private boolean obtenerAsistenciaAlumno(Optional<Entidad_ActividadFisica> actividadOpt, Entidad_Usuario_Alumno alumno) {
+        return actividadOpt.flatMap(actividad -> actividad.getListas().stream().findFirst())
+                .flatMap(lista -> asistenciaRepositorio.findByListaAndUsuarioAlumno(lista, alumno))
+                .map(Ent_AsistenciaActividadFisica::isPresente)
+                .orElse(false);
     }
 
-    return new CitaDTO(
-        cita.getUsuarioAdmin().getServicio().getNombre(), 
-        diaSemana,
-        hora,
-        cita.getEstadoAsistencia(),
-        cita.getVerificacion(),
-        cita.getAutorizadoPor()
-    );
-}
-
-
-    @Autowired
-    private InscripcionTallerRepositorio inscripcionTallerRepositorio;
-
-   
-    
-    private TallerDTO convertirATallerDTO(Ent_InscripcionTaller inscripcion) {
-        return new TallerDTO(
-            inscripcion.getTaller().getNombre(),
-            inscripcion.getTaller().getDescripcion(),
-            convertirFecha(inscripcion.getTaller().getFecha()),
-            convertirHora(inscripcion.getTaller().getHora()),
-            inscripcion.getEstadoAsistencia()
-        );
+    // Obtener la fecha de registro de asistencia del alumno
+    private LocalDateTime obtenerFechaRegistroAsistencia(Optional<Entidad_ActividadFisica> actividadOpt, Entidad_Usuario_Alumno alumno) {
+        return actividadOpt.flatMap(actividad -> actividad.getListas().stream().findFirst())
+                .flatMap(lista -> asistenciaRepositorio.findByListaAndUsuarioAlumno(lista, alumno))
+                .map(Ent_AsistenciaActividadFisica::getFechaRegistro)
+                .orElse(null);
     }
 
-    private java.time.LocalDate convertirFecha(java.sql.Date date) {
-        return date != null ? date.toLocalDate() : null;
-    }
-
-    private java.time.LocalTime convertirHora(java.sql.Time time) {
-        return time != null ? time.toLocalTime() : null;
-    }
-
+    // Obtener las citas confirmadas
     public List<CitaDTO> obtenerCitasConfirmadas(String userName) {
-        List<Ent_Cita> citasConfirmadas = citaRepositorio.findByUsuarioAlumno_Usuario_UserNameAndVerificacionTrue(userName);
-        return citasConfirmadas.stream().map(this::convertirACitaDTO).collect(Collectors.toList());
+        return citaRepositorio.findByUsuarioAlumno_Usuario_UserNameAndVerificacionTrue(userName)
+                .stream().map(this::convertirACitaDTO).collect(Collectors.toList());
     }
-    
-    public List<TallerDTO> obtenerTalleresConfirmados(String userName) {
-        List<Ent_InscripcionTaller> talleresConfirmados = inscripcionTallerRepositorio.findByUsuarioAlumno_Usuario_UserNameAndVerificacionTrue(userName);
-        return talleresConfirmados.stream().map(this::convertirATallerDTO).collect(Collectors.toList());
+
+    // Obtener los talleres confirmados
+    public List<TallerInscripcionDTO> obtenerTalleresConfirmados(String userName) {
+        return inscripcionTallerRepositorio.findByUsuarioAlumno_Usuario_UserNameAndVerificacionTrue(userName)
+                .stream().map(this::convertirATallerDTO).collect(Collectors.toList());
     }
 
     public List<CitaDTO> obtenerCitasPendientes(String userName) {
         List<Ent_Cita> citasPendientes = citaRepositorio.findByUsuarioAlumno_Usuario_UserNameAndVerificacionFalse(userName);
         return citasPendientes.stream().map(this::convertirACitaDTO).collect(Collectors.toList());
     }
-    
-    public List<TallerDTO> obtenerTalleresPendientes(String userName) {
+
+    // Obtener los talleres pendientes
+    public List<TallerInscripcionDTO> obtenerTalleresPendientes(String userName) {
         List<Ent_InscripcionTaller> talleresPendientes = inscripcionTallerRepositorio.findByUsuarioAlumno_Usuario_UserNameAndVerificacionFalse(userName);
         return talleresPendientes.stream().map(this::convertirATallerDTO).collect(Collectors.toList());
     }
-    
 
+
+    // Métodos de conversión
+    private CitaDTO convertirACitaDTO(Ent_Cita cita) {
+        return new CitaDTO(
+                cita.getIdCita(),
+                cita.getUsuarioAdmin().getServicio().getNombre(),
+                cita.getHorarioServicio() != null ? cita.getHorarioServicio().getDiaSemana() : null,
+                cita.getHorarioServicio() != null ? cita.getHorarioServicio().getHora() : null,
+                cita.getEstadoAsistencia(),
+                cita.getVerificacion(),
+                cita.getAutorizadoPor(),
+                cita.getUsuarioAlumno().getUsuario().getNombre() + " " + cita.getUsuarioAlumno().getUsuario().getApellido()
+        );
+    }
+
+    private TallerInscripcionDTO convertirATallerDTO(Ent_InscripcionTaller inscripcion) {
+        return new TallerInscripcionDTO(
+                inscripcion.getTaller().getNombre(),
+                inscripcion.getTaller().getDescripcion(),
+                inscripcion.getTaller().getFecha().toLocalDate(),
+                inscripcion.getTaller().getHora().toLocalTime(),
+                inscripcion.getEstadoAsistencia()
+        );
+    }
+
+    // Calcular el progreso del alumno basado en las asistencias confirmadas
     public int calcularProgresoAlumno(String userName) {
-        int totalAsistencias = 0;
-    
+        int totalCitas = citaRepositorio.findByUsuarioAlumno_Usuario_UserNameAndVerificacionTrue(userName).size();
+        int totalTalleres = inscripcionTallerRepositorio.findByUsuarioAlumno_Usuario_UserNameAndVerificacionTrue(userName).size();
+        int totalAsistencias = totalCitas + totalTalleres;
 
-        List<Ent_Cita> citasConfirmadas = citaRepositorio.findByUsuarioAlumno_Usuario_UserNameAndVerificacionTrue(userName);
-        totalAsistencias += citasConfirmadas.size();
-
-        List<Ent_InscripcionTaller> talleresConfirmados = inscripcionTallerRepositorio.findByUsuarioAlumno_Usuario_UserNameAndVerificacionTrue(userName);
-        totalAsistencias += talleresConfirmados.size();
-    
-        int progreso = (int) (((double) totalAsistencias / 4) * 100);
-        return Math.min(progreso, 100); 
+        return Math.min((totalAsistencias * 100) / 4, 100); // Progreso limitado al 100%
     }
 
-
- 
-
+    // Buscar alumno por username o ID
     public Optional<AlumnoDTO> buscarAlumnoPorUsername(String search) {
-        // Buscar al alumno por username
-        Optional<Entidad_Usuario_Alumno> alumnoOpt = usuarioAlumnoRepositorio.findByUsuario_UserName(search);
-    
-        return alumnoOpt.map(alumno -> new AlumnoDTO(
-            alumno.getIdUsuarioAlumno(),
-            alumno.getUsuario().getNombre() + " " + alumno.getUsuario().getApellido(),
-            null, // No es necesario por ahora (nombreActividadFisica)
-            null, // No es necesario por ahora (nombreCoach)
-            null, // No es necesario por ahora (horario)
-            false, // No es necesario por ahora (yaAsistio)
-            null,  // No es necesario por ahora (fechaRegistro)
-            alumno.getFacultad(),
-            alumno.getResidencia(),
-            alumno.getSemestre()
-        ));
+        return usuarioAlumnoRepositorio.findByUsuario_UserName(search)
+                .map(this::convertirAAlumnoDTOSimple);
     }
-    
+
     public Optional<AlumnoDTO> buscarAlumnoPorId(Long alumnoId) {
-        Optional<Entidad_Usuario_Alumno> alumnoOpt = usuarioAlumnoRepositorio.findById(alumnoId);
-        
-        return alumnoOpt.map(alumno -> new AlumnoDTO(
-            alumno.getIdUsuarioAlumno(),
-            alumno.getUsuario().getNombre() + " " + alumno.getUsuario().getApellido(),
-            null, // Otros campos opcionales que no sean relevantes
-            null,
-            null,
-            false,
-            null,
-            alumno.getFacultad(),
-            alumno.getResidencia(),
-            alumno.getSemestre()
-        ));
+        return usuarioAlumnoRepositorio.findById(alumnoId)
+                .map(this::convertirAAlumnoDTOSimple);
     }
-    
+
+    // Conversión simplificada de Alumno
+    private AlumnoDTO convertirAAlumnoDTOSimple(Entidad_Usuario_Alumno alumno) {
+        return new AlumnoDTO(
+                alumno.getIdUsuarioAlumno(),
+                alumno.getUsuario().getNombre() + " " + alumno.getUsuario().getApellido(),
+                null, null, null, false, null,
+                alumno.getFacultad(),
+                alumno.getResidencia(),
+                alumno.getSemestre()
+        );
+    }
 }
-
-    
-

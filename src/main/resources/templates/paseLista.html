@@ -11,7 +11,7 @@
         <h3>Actividad: <span th:text="${actividad.nombre}"></span></h3>
     </header>
     
-    <form th:action="@{/portal/guardarAsistencia/{idLista}(idLista=${lista.idLista})}" method="post">
+    <form th:action="@{/portal/coach/guardarAsistencia/{idLista}(idLista=${lista.idLista})}" method="post">
         <table class="table table-striped">
             <thead>
                 <tr>

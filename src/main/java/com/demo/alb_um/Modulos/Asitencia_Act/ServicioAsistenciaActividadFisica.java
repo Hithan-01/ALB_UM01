@@ -1,60 +1,38 @@
 package com.demo.alb_um.Modulos.Asitencia_Act;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
 import com.demo.alb_um.DTOs.AlumnoDTO;
-
-import com.demo.alb_um.Modulos.Alumno.Entidad_Usuario_Alumno;
 import com.demo.alb_um.Modulos.Listas.Entidad_Lista;
-
 import java.util.List;
-import java.util.Optional;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 public class ServicioAsistenciaActividadFisica {
 
     @Autowired
-    private RepositorioAsistenciaActividadFisica asistenciaActividadFisicaRepositorio;
+    private RepositorioAsistenciaActividadFisica asistenciaRepositorio;
 
-    public List<Ent_AsistenciaActividadFisica> obtenerTodasLasAsistencias() {
-        return asistenciaActividadFisicaRepositorio.findAll();
-    }
-
-    public Ent_AsistenciaActividadFisica guardarAsistencia(Ent_AsistenciaActividadFisica asistencia) {
-        return asistenciaActividadFisicaRepositorio.save(asistencia);
-    }
-
-    public Ent_AsistenciaActividadFisica obtenerAsistenciaPorId(Long id) {
-        return asistenciaActividadFisicaRepositorio.findById(id).orElse(null);
-    }
-
-    public void eliminarAsistencia(Long id) {
-        asistenciaActividadFisicaRepositorio.deleteById(id);
-    }
-
-    @Autowired
-private RepositorioAsistenciaActividadFisica asistenciaRepositorio; 
-public List<AlumnoDTO> obtenerAlumnosConAsistencia(List<AlumnoDTO> alumnos, Entidad_Lista lista) {
-    for (AlumnoDTO alumno : alumnos) {
-        Entidad_Usuario_Alumno usuarioAlumno = new Entidad_Usuario_Alumno();
-        usuarioAlumno.setIdUsuarioAlumno(alumno.getIdUsuarioAlumno());
-        
-        Optional<Ent_AsistenciaActividadFisica> asistencia = asistenciaRepositorio.findByListaAndUsuarioAlumno(lista, usuarioAlumno);
-        
-        // Verificar si ya existe la asistencia y marcar 'yaAsistio' basado en el campo 'presente'
-        if (asistencia.isPresent()) {
-            Ent_AsistenciaActividadFisica asistenciaExistente = asistencia.get();
-            alumno.setYaAsistio(asistenciaExistente.isPresente());
-            alumno.setFechaRegistro(asistenciaExistente.getFechaRegistro());  // Asegúrate de que se está estableciendo la fecha de registro correctamente
-        } else {
-            alumno.setYaAsistio(false);  // Si no hay asistencia registrada, permitir marcar
-            alumno.setFechaRegistro(null); // Si no hay fecha de registro, se establece en null
-        }
-    }
-    return alumnos;
-}
-
-
+    public List<AlumnoDTO> obtenerAlumnosConAsistencia(List<AlumnoDTO> alumnos, Entidad_Lista lista) {
+    
+        List<Ent_AsistenciaActividadFisica> asistencias = asistenciaRepositorio.findByLista(lista);
 
  
+        Map<Long, Ent_AsistenciaActividadFisica> asistenciaMap = asistencias.stream()
+            .collect(Collectors.toMap(asistencia -> asistencia.getUsuarioAlumno().getIdUsuarioAlumno(), asistencia -> asistencia));
+
+        
+        return alumnos.stream()
+            .peek(alumno -> {
+                Ent_AsistenciaActividadFisica asistencia = asistenciaMap.get(alumno.getIdUsuarioAlumno());
+                if (asistencia != null) {
+                    alumno.setYaAsistio(asistencia.isPresente());
+                    alumno.setFechaRegistro(asistencia.getFechaRegistro());
+                } else {
+                    alumno.setYaAsistio(false);  // No hay asistencia registrada
+                    alumno.setFechaRegistro(null); // No hay fecha de registro
+                }
+            })
+            .collect(Collectors.toList());
+    }
 }

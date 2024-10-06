@@ -43,13 +43,12 @@
                         <td th:text="${actividad.diaSemana}"></td>
                         <td th:text="${actividad.hora}"></td>
                         <td>
-                            <!-- Botón para ver alumnos -->
-                            <a class="btn btn-primary" th:href="@{/portal/listadealumno/{idActividadFisica}(idActividadFisica=${actividad.idActividadFisica})}">
+                            <a class="btn btn-primary" th:href="@{/portal/coach/listadealumno/{idActividadFisica}(idActividadFisica=${actividad.idActividadFisica})}">
                                 Ver Alumnos
                             </a>
-                    
-                            <!-- Botón para pase de lista -->
-                            <form th:action="@{/portal/paseLista/{idActividadFisica}(idActividadFisica=${actividad.idActividadFisica})}" method="post">
+                            
+            
+                            <form th:action="@{/portal/coach/paseLista/{idActividadFisica}(idActividadFisica=${actividad.idActividadFisica})}" method="post">
                                 <button class="btn btn-success" type="submit">Pase de Lista</button>
                             </form>
                         </td>

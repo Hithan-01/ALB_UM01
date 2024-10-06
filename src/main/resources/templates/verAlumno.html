@@ -34,7 +34,7 @@
     </div>
 
     <!-- Formulario para generar la asistencia -->
-    <form th:action="@{/admin/generarAsistencia}" method="post">
+    <form th:action="@{/portal/admin/general/generarAsistencia}" method="post">
         <!-- Campo oculto para el id del alumno -->
         <input type="hidden" name="alumnoId" th:value="${alumno.idUsuarioAlumno}" />
     

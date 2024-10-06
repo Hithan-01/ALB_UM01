@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html xmlns="http://www.thymeleaf.org">
+<head>
+    <title>Resultado de la Cita</title>
+    <meta charset="UTF-8">
+</head>
+<body>
+    <h1 th:text="${mensaje}">Resultado de la cita</h1>
+
+    <!-- Botón para regresar a la página de inicio -->
+    <div>
+        <a th:href="@{/alumno/servicios}" class="btn btn-primary">Regresar a la página de inicio</a>
+    </div>
+</body>
+</html>

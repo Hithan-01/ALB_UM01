@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html xmlns="http://www.thymeleaf.org">
+<head>
+    <title>Horarios Disponibles - <span th:text="${facultad}"></span></title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link rel="stylesheet" type="text/css" href="../static/styles.css">
+</head>
+<body>
+    <header>
+        <div class="header-container">
+            <h1>Horarios Disponibles para la Facultad: <span th:text="${facultad}"></span></h1>
+        </div>
+    </header>
+
+    <div class="container mt-5">
+        <h2>Selecciona un día para ver los horarios disponibles</h2>
+    
+        <!-- Mostrar los días disponibles como botones -->
+        <div class="btn-group mb-4" role="group">
+            <button type="button" class="btn btn-primary"
+                    th:each="entry : ${horariosPorDia}"
+                    th:text="${#temporals.format(entry.key, 'EEEE, dd MMMM yyyy')}"
+                    th:attr="data-dia=${entry.key}"
+                    onclick="mostrarHorarios(this.getAttribute('data-dia'))">
+                Día
+            </button>
+        </div>
+    
+        <!-- Sección para mostrar los horarios correspondientes al día seleccionado -->
+        <div id="horariosContainer">
+            <div th:each="entry : ${horariosPorDia}">
+                <div class="horarios-dia" th:attr="data-dia=${entry.key}" style="display:none;">
+                    <h3 th:text="${#temporals.format(entry.key, 'EEEE, dd MMMM yyyy')}"></h3>
+                    <ul class="list-group">
+                        <li class="list-group-item" th:each="horario : ${entry.value}">
+                            <span th:text="${horario.hora}">Hora</span>
+                            <!-- Cambiar el enlace a un formulario -->
+                            <form th:action="@{/alumno/agendarCita}" method="post">
+                                <!-- Campo oculto para enviar el horarioId -->
+                                <input type="hidden" name="horarioId" th:value="${horario.idHorarioServicio}" />
+                                <button type="submit" class="btn btn-success float-right">Agendar</button>
+                            </form>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+       function mostrarHorarios(dia) {
+           // Verificar el día seleccionado
+           alert("Día seleccionado: " + dia);
+
+           // Ocultar todos los horarios
+           document.querySelectorAll(".horarios-dia").forEach(div => {
+               div.style.display = 'none';
+           });
+
+           // Mostrar los horarios correspondientes al día seleccionado
+           const selectedDiv = document.querySelector(`.horarios-dia[data-dia="${dia}"]`);
+           if (selectedDiv) {
+               selectedDiv.style.display = 'block';
+           }
+       }
+    </script>
+    
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+            crossorigin="anonymous"></script>
+</body>
+</html>
