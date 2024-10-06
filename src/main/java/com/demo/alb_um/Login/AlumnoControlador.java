@@ -15,7 +15,9 @@ import java.util.stream.Collectors;
 import java.time.LocalDate;
 import com.demo.alb_um.Modulos.Admn.Ent_UsuarioAdmin;
 import com.demo.alb_um.Modulos.Alumno.UsuarioAlumnoServicio;
+import com.demo.alb_um.Modulos.Citas.CitaRepositorio;
 import com.demo.alb_um.Modulos.Citas.CitaServicio;
+import com.demo.alb_um.Modulos.Citas.Ent_Cita;
 import com.demo.alb_um.Modulos.Horario_servicio.Ent_HorarioServicio;
 import com.demo.alb_um.Modulos.Horario_servicio.HorarioServicioRepositorio;
 import com.demo.alb_um.Modulos.Horario_servicio.HorarioServicioServicio;
@@ -33,31 +35,58 @@ public class AlumnoControlador {
     private final HorarioServicioServicio horarioServicio;
     private final HorarioServicioRepositorio horarioServicioRepositorio;
     private final InscripcionTallerServicio inscripcionTallerServicio; // Nuevo servicio
+    private final CitaRepositorio citaRepositorio;
 
     @Autowired
     public AlumnoControlador(UsuarioAlumnoServicio usuarioAlumnoServicio, 
                              CitaServicio citaServicio,
                              HorarioServicioServicio horarioServicio, 
                              HorarioServicioRepositorio horarioServicioRepositorio,
-                             InscripcionTallerServicio inscripcionTallerServicio) { // Inyecta el nuevo servicio
+                             InscripcionTallerServicio inscripcionTallerServicio, CitaRepositorio citaRepositorio) { // Inyecta el nuevo servicio
         this.usuarioAlumnoServicio = usuarioAlumnoServicio;
         this.citaServicio = citaServicio;
         this.horarioServicio = horarioServicio;
         this.horarioServicioRepositorio = horarioServicioRepositorio;
         this.inscripcionTallerServicio = inscripcionTallerServicio; // Asigna el servicio
+        this.citaRepositorio = citaRepositorio;
     }
 
     @GetMapping("/servicios")
-    public String mostrarServicios() {
-        return "servicios"; // Vista de servicios generales
-    } 
+public String mostrarServicios(Model model, Principal principal) {
+    // Obtener el username del alumno autenticado
+    String usernameAlumno = principal.getName();
 
-    @GetMapping("/talleres")
-public String mostrarTalleres(Model model) {
+    // Verificar si el alumno ya tiene una cita para Antropometría
+    List<Ent_Cita> citasAntropometria = citaRepositorio.findByUsuarioAlumno_Usuario_UserNameAndVerificacionFalse(usernameAlumno);
+    
+    // Si ya tiene una cita para Antropometría, bloqueamos el botón
+    boolean tieneCitaAntropometria = !citasAntropometria.isEmpty();
+    
+    // Pasamos esta información al modelo para la vista
+    model.addAttribute("tieneCitaAntropometria", tieneCitaAntropometria);
+    
+    return "servicios"; // Vista de servicios generales
+}
+
+
+@GetMapping("/talleres")
+public String mostrarTalleres(Model model, Principal principal) {
+    String username = principal.getName();
+    
+    // Obtener la lista de talleres disponibles (ahora incluye los talleres llenos)
     List<TallerDTO> talleresDisponibles = inscripcionTallerServicio.listarTalleresDisponibles();
+    
+    // Para cada taller, verificar si el alumno ya está inscrito
+    talleresDisponibles.forEach(taller -> {
+        boolean estaInscrito = inscripcionTallerServicio.estaInscritoEnTaller(username, taller.getIdTaller());
+        taller.setEstaInscrito(estaInscrito);  // Marcar si está inscrito
+    });
+
     model.addAttribute("talleres", talleresDisponibles);
     return "talleres";
 }
+
+
 
 @PostMapping("/talleres/inscribir")
 public String inscribirTaller(@RequestParam("idTaller") Long idTaller, Principal principal, Model model) {
@@ -73,13 +102,24 @@ public String inscribirTaller(@RequestParam("idTaller") Long idTaller, Principal
     AlumnoDTO alumno = alumnoOpt.get();
     Long idAlumno = alumno.getIdUsuarioAlumno();
 
-    // Inscribir al alumno en el taller
-    String mensaje = inscripcionTallerServicio.inscribirAlumno(idTaller, idAlumno);
-    model.addAttribute("mensaje", mensaje);
+    // Verificar si el alumno ya está inscrito en este taller
+    if (inscripcionTallerServicio.estaInscritoEnTaller(idAlumno, idTaller)) {
+        // Si ya está inscrito, mostrar un mensaje de error
+        model.addAttribute("error", "Ya estás inscrito en este taller.");
+        List<TallerDTO> talleresDisponibles = inscripcionTallerServicio.listarTalleresDisponibles();
+        model.addAttribute("talleres", talleresDisponibles);
+        return "talleres";  // Regresar a la lista de talleres
+    }
     
-    // Redirigir a la página de talleres con un mensaje de éxito o error
-    return "redirect:/alumno/talleres";
+
+    // Si no está inscrito, proceder con la inscripción
+    inscripcionTallerServicio.inscribirAlumno(idTaller, idAlumno);
+    model.addAttribute("mensaje", "Te has inscrito exitosamente en el taller.");
+
+    // Redirigir a la página de talleres con un mensaje de éxito
+    return "redirect:/alumno/talleres";  // Redirigir para evitar doble submit
 }
+
 
 
     

@@ -26,8 +26,16 @@
         <h2>Servicios Disponibles</h2>
         <p>Aquí puedes agendar citas para los distintos servicios que ofrecemos.</p>
 
-        <!-- Botón para agendar cita de antropometría -->
-        <a href="/alumno/horariosDisponibles" class="btn btn-primary">Agendar Cita de Antropometría</a>
+        <!-- Lógica Thymeleaf para mostrar u ocultar el botón según si ya tiene cita para Antropometría -->
+        <div th:if="${!tieneCitaAntropometria}">
+            <a href="/alumno/horariosDisponibles" class="btn btn-primary">Agendar Cita de Antropometría</a>
+        </div>
+        
+        <div th:if="${tieneCitaAntropometria}">
+            <p class="text-warning">
+                Ya has agendado una cita para Antropometría, asiste a otras citas y talleres para completar tu progreso.
+            </p>
+        </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"

@@ -8,6 +8,12 @@
 <body>
     <div class="container">
         <h1 class="mt-4">Talleres Disponibles</h1>
+        
+        <!-- Mostrar mensaje de error si es necesario -->
+        <div th:if="${error}" class="alert alert-danger" role="alert">
+            <p th:text="${error}"></p>
+        </div>
+        
         <form th:action="@{/alumno/talleres/inscribir}" method="post">
             <table class="table table-striped mt-4">
                 <thead>
@@ -17,24 +23,26 @@
                         <th>Fecha</th>
                         <th>Hora</th>
                         <th>Cupos Disponibles</th>
-                        <th>Seleccionar</th>
+                        <th>Acción</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr th:each="taller : ${talleres}">
                         <td th:text="${taller.nombre}"></td>
                         <td th:text="${taller.descripcion}"></td>
-                        <!-- Usa el formateo directamente en las etiquetas -->
                         <td th:text="${#temporals.format(taller.fecha, 'dd/MM/yyyy')}"></td>
                         <td th:text="${#temporals.format(taller.hora, 'HH:mm')}"></td>
                         <td th:text="${taller.cuposDisponibles}"></td>
                         <td>
-                            <input type="radio" name="idTaller" th:value="${taller.idTaller}" required>
+                            <!-- Si está inscrito, deshabilitar el botón y mostrar mensaje -->
+                            <span th:if="${taller.estaInscrito}" class="text-success">Ya inscrito</span>
+                            <span th:if="${taller.tallerLleno && !taller.estaInscrito}" class="text-danger">Cupos llenos</span>
+                            <input type="radio" name="idTaller" th:value="${taller.idTaller}" th:disabled="${taller.estaInscrito || taller.tallerLleno}">
                         </td>
                     </tr>
                 </tbody>
             </table>
-            <button type="submit" class="btn btn-primary">Inscribirse</button>
+            <button type="submit" class="btn btn-primary" th:disabled="${#lists.isEmpty(talleres)}">Inscribirse</button>
         </form>
     </div>
 </body>

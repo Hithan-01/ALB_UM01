@@ -10,7 +10,10 @@ public class TallerDTO {
     private LocalDate fecha;
     private LocalTime hora;
     private Integer cuposDisponibles;
+    private boolean estaInscrito; // Indica si el alumno está inscrito
+    private boolean tallerLleno;  // Nuevo campo para indicar si el taller está lleno
 
+    // Constructor
     public TallerDTO(Long idTaller, String nombre, String descripcion, LocalDate fecha, LocalTime hora, Integer cuposDisponibles) {
         this.idTaller = idTaller;
         this.nombre = nombre;
@@ -67,5 +70,21 @@ public class TallerDTO {
 
     public void setCuposDisponibles(Integer cuposDisponibles) {
         this.cuposDisponibles = cuposDisponibles;
+    }
+
+    public boolean isEstaInscrito() {
+        return estaInscrito;
+    }
+
+    public void setEstaInscrito(boolean estaInscrito) {
+        this.estaInscrito = estaInscrito;
+    }
+
+    public boolean isTallerLleno() {
+        return tallerLleno;
+    }
+
+    public void setTallerLleno(boolean tallerLleno) {
+        this.tallerLleno = tallerLleno;
     }
 }

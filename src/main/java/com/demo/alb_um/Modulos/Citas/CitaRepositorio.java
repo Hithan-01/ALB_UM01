@@ -17,4 +17,8 @@ List<Ent_Cita> findByUsuarioAlumno_Usuario_UserNameAndVerificacionFalse(String u
 
 List<Ent_Cita> findByUsuarioAdmin_Servicio_IdServicioAndVerificacionFalse(Long servicioId);
 
+boolean existsByUsuarioAlumno_IdUsuarioAlumnoAndHorarioServicio_Servicio_Nombre(Long idAlumno, String nombreServicio);
+
+
+
 }

@@ -15,4 +15,9 @@ public interface InscripcionTallerRepositorio extends JpaRepository<Ent_Inscripc
     // Método para obtener inscripciones a talleres no verificadas
 List<Ent_InscripcionTaller> findByUsuarioAlumno_Usuario_UserNameAndVerificacionFalse(String userName);
 
+boolean existsByUsuarioAlumno_IdUsuarioAlumnoAndTaller_IdTaller(Long idAlumno, Long idTaller);
+
+boolean existsByUsuarioAlumno_Usuario_UserNameAndTaller_IdTaller(String userName, Long idTaller);
+
+
 }

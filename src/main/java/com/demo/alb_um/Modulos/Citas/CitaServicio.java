@@ -89,6 +89,11 @@ public class CitaServicio {
         citasRepositorio.save(cita);
     }
 
+    public boolean tieneCitaParaAntropometria(Long idAlumno) {
+        // Buscar si ya existe una cita para el alumno en el servicio de Antropometría
+        return citasRepositorio.existsByUsuarioAlumno_IdUsuarioAlumnoAndHorarioServicio_Servicio_Nombre(idAlumno, "Antropometria");
+    }
+    
     
 
     

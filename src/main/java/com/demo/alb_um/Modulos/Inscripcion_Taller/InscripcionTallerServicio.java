@@ -24,21 +24,51 @@ public class InscripcionTallerServicio {
     @Autowired
     private UsuarioAlumnoRepositorio AlumnoRepositorio;
 
-    // Método para listar talleres disponibles (sin cupos agotados) y convertir a DTO
-    public List<TallerDTO> listarTalleresDisponibles() {
-        List<Ent_Taller> talleres = tallerRepository.findByCuposDisponiblesGreaterThan(0);
-        
-        // Convertimos cada Ent_Taller a TallerDTO
-        return talleres.stream()
-            .map(taller -> new TallerDTO(
+   // Método para verificar usando el username (String)
+public boolean estaInscritoEnTaller(String username, Long idTaller) {
+    return RepositorioInscripcionTaller.existsByUsuarioAlumno_Usuario_UserNameAndTaller_IdTaller(username, idTaller);
+}
+
+// Método para verificar usando el idAlumno (Long)
+public boolean estaInscritoEnTaller(Long idAlumno, Long idTaller) {
+    return RepositorioInscripcionTaller.existsByUsuarioAlumno_IdUsuarioAlumnoAndTaller_IdTaller(idAlumno, idTaller);
+}
+    
+
+    public List<Long> obtenerTalleresInscritosIds(String userName) {
+        List<Ent_InscripcionTaller> talleresInscritos = RepositorioInscripcionTaller.findByUsuarioAlumno_Usuario_UserName(userName);
+        return talleresInscritos.stream()
+                .map(taller -> taller.getTaller().getIdTaller())
+                .collect(Collectors.toList());
+    }
+    
+    
+
+// Método para listar todos los talleres (incluyendo los que no tienen cupos disponibles)
+public List<TallerDTO> listarTalleresDisponibles() {
+    List<Ent_Taller> talleres = tallerRepository.findAll();  // Obtener todos los talleres
+
+    // Convertimos cada Ent_Taller a TallerDTO
+    return talleres.stream()
+        .map(taller -> {
+            TallerDTO dto = new TallerDTO(
                 taller.getIdTaller(),
                 taller.getNombre(),
                 taller.getDescripcion(),
                 taller.getFecha().toLocalDate(),
                 taller.getHora().toLocalTime(),
-                taller.getCuposDisponibles()))
-            .collect(Collectors.toList());
-    }
+                taller.getCuposDisponibles());
+                
+            // Si no hay cupos disponibles, marcamos el taller como lleno
+            if (taller.getCuposDisponibles() == 0) {
+                dto.setTallerLleno(true);  // Aquí asumimos que agregas un setter para este campo
+            }
+            
+            return dto;
+        })
+        .collect(Collectors.toList());
+}
+
     
 
     // Método para inscribir un alumno a un taller (sin cambios)
