@@ -52,7 +52,7 @@
         <!-- Lógica para mostrar las acciones según el tipo de administrador -->
         <div class="actions mt-4">
             <!-- Si el administrador NO es de Antropometría, mostrar solo el cuadro de búsqueda de alumnos -->
-            <div th:if="${admin.servicio.nombre != 'Antropometria'}">
+            <div th:if="${admin.servicio.nombre != 'Antropometria' and admin.servicio.nombre != 'Talleres'}">
                 <form th:action="@{/portal/admin/general/buscarAlumno}" method="get" class="mt-4">
                     <label for="search">Buscar Alumno (Username):</label>
                     <input type="text" id="search" name="search" class="form-control" placeholder="Username" required>
@@ -96,8 +96,199 @@
                     <button type="submit" class="btn btn-primary mt-3">Validar Cita</button>
                 </form>
             </div>
-        </div>
-    </div>
+
+            <div th:if="${admin.servicio.nombre == 'Talleres'}" class="talleres-section">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h3 class="h5 mb-0">Talleres del Día</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Taller</th>
+                                        <th>Hora</th>
+                                        <th>Estado</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:each="taller : ${talleresDelDia}">
+                                        <td th:text="${taller.nombre}"></td>
+                                        <td th:text="${#temporals.format(taller.hora, 'HH:mm')}"></td>
+                                        <td>
+                                            <span th:class="${'badge ' + 
+                                                (taller.estado == 'PROGRAMADO' ? 'bg-primary' : 
+                                                 taller.estado == 'EN_CURSO' ? 'bg-success' : 'bg-secondary')}"
+                                                  th:text="${taller.estado}">
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <!-- Botón de registro de llegada -->
+                                            <button th:if="${taller.puedeRegistrarLlegada}"
+                                                    class="btn btn-sm btn-primary"
+                                                    onclick="mostrarModalRegistro(this)"
+                                                    th:data-taller-id="${taller.idTaller}"
+                                                    th:data-taller-nombre="${taller.nombre}">
+                                                Registrar Llegada
+                                            </button>
+                                            
+                                            <!-- Botón de detener taller -->
+                                            <form th:if="${taller.estado.name() == 'EN_CURSO'}"
+                                                  th:action="@{/portal/admin/taller/{id}/detener(id=${taller.idTaller})}"
+                                                  method="post" style="display: inline;">
+                                                <button type="submit" class="btn btn-sm btn-warning">
+                                                    Detener Taller
+                                                </button>
+                                            </form>
+
+                                            <div th:if="${taller.estado.name() == 'FINALIZADO'}">
+                                                <button class="btn btn-primary"
+                                                        th:attr="data-idTaller=${taller.idTaller}"
+                                                        onclick="registrarSalida(this)"
+                                                        type="button">
+                                                    Registrar Hora de Salida
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            
+                <!-- Modal para registro de llegada -->
+                <div class="modal fade" id="registroModal" tabindex="-1">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Registrar Llegada</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                <input type="hidden" id="tallerIdModal">
+                                <div class="mb-3">
+                                    <label class="form-label">Taller</label>
+                                    <input type="text" class="form-control" id="tallerNombreModal" readonly>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Tag o Username</label>
+                                    <input type="text" class="form-control" id="identificadorInput" 
+                                           placeholder="Escanee tag o ingrese username">
+                                </div>
+                                <div id="mensajeRegistro" class="alert" style="display: none;"></div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                                <button type="button" class="btn btn-primary" onclick="registrarLlegada()">Registrar</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            
+                <script>
+                    let registroModal;
+                    
+                    document.addEventListener('DOMContentLoaded', function() {
+                        registroModal = new bootstrap.Modal(document.getElementById('registroModal'));
+                    });
+            
+                    function mostrarModalRegistro(button) {
+                        const tallerId = button.getAttribute('data-taller-id');
+                        const tallerNombre = button.getAttribute('data-taller-nombre');
+                        
+                        document.getElementById('tallerIdModal').value = tallerId;
+                        document.getElementById('tallerNombreModal').value = tallerNombre;
+                        document.getElementById('identificadorInput').value = '';
+                        document.getElementById('mensajeRegistro').style.display = 'none';
+                        
+                        registroModal.show();
+                    }
+            
+                    function registrarLlegada() {
+    const tallerId = document.getElementById('tallerIdModal').value;
+    const identificador = document.getElementById('identificadorInput').value;
+    const mensajeElement = document.getElementById('mensajeRegistro');
+
+    if (!identificador) {
+        mensajeElement.className = 'alert alert-danger';
+        mensajeElement.textContent = 'Por favor ingrese un tag o username';
+        mensajeElement.style.display = 'block';
+        return;
+    }
+
+    const formData = new URLSearchParams();
+    formData.append('identificador', identificador);
+
+    fetch(`/portal/admin/taller/${tallerId}/registrarLlegada`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: formData.toString()
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        console.log('Respuesta:', data);
+        mensajeElement.className = `alert alert-${data.error ? 'danger' : 'success'}`;
+        mensajeElement.textContent = data.message;
+        mensajeElement.style.display = 'block';
+
+        if (!data.error) {
+            setTimeout(() => {
+                registroModal.hide();
+                location.reload();
+            }, 1500);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        mensajeElement.className = 'alert alert-danger';
+        mensajeElement.textContent = 'Error al registrar llegada: ' + error.message;
+        mensajeElement.style.display = 'block';
+    });
+}
+function registrarSalida(button) {
+    const tallerId = button.getAttribute("data-idTaller");
+    const identificador = prompt("Ingrese el tag de credencial o el username del alumno:");
+
+    if (!identificador) {
+        alert("Se requiere el tag de credencial o el username.");
+        return;
+    }
+
+    fetch(`/portal/admin/${tallerId}/registrarSalida`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({ identificador })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.error) {
+            alert("Error: " + data.message);
+        } else {
+            alert("Éxito: " + data.message);
+            location.reload();  // Recargar la página para actualizar el estado
+        }
+    })
+    .catch(error => {
+        console.error("Error:", error);
+        alert("Ocurrió un error al registrar la salida.");
+    });
+}
+
+
+                </script>
+            </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>

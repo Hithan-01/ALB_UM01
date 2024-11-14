@@ -33,6 +33,9 @@ public class Entidad_Usuario {
     @Column(name = "rol", length = 20)
     private String rol;
 
+    @Column(name = "tag_credencial", length = 50, unique = true)
+    private String tagCredencial;
+
     @OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     private Set<Entidad_Usuario_Alumno> alumnos;
@@ -125,5 +128,13 @@ public class Entidad_Usuario {
 
     public void setAdmins(Set<Ent_UsuarioAdmin> admins) {
         this.admins = admins;
+    }
+
+    public String getTagCredencial() {
+        return tagCredencial;
+    }
+
+    public void setTagCredencial(String tagCredencial) {
+        this.tagCredencial = tagCredencial;
     }
 }

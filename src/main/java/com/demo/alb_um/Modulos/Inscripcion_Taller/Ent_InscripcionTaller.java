@@ -1,5 +1,8 @@
 package com.demo.alb_um.Modulos.Inscripcion_Taller;
 import jakarta.persistence.*;
+
+import java.time.LocalTime;
+
 import com.demo.alb_um.Modulos.Alumno.Entidad_Usuario_Alumno;
 import com.demo.alb_um.Modulos.Taller.Ent_Taller;
 import com.fasterxml.jackson.annotation.JsonBackReference;
@@ -29,6 +32,11 @@ public class Ent_InscripcionTaller {
     @Column(name = "verificacion")
     private Boolean verificacion;
 
+    @Column(name = "hora_llegada")
+    private LocalTime horaLlegada;  // Para comparar con la hora de inicio del taller
+
+    @Column(name = "hora_salida")
+    private LocalTime horaSalida;   // Para validar que completó el taller
     // Getters y Setters
     public Long getIdInscripcion() {
         return idInscripcion;
@@ -68,5 +76,22 @@ public class Ent_InscripcionTaller {
 
     public void setVerificacion(Boolean verificacion) {
         this.verificacion = verificacion;
+    }
+
+    public LocalTime getHoraLlegada() {
+        return horaLlegada;
+    }
+
+    public void setHoraLlegada(LocalTime horaLlegada) {
+        this.horaLlegada = horaLlegada;
+    }
+
+    // Getter y Setter para horaSalida
+    public LocalTime getHoraSalida() {
+        return horaSalida;
+    }
+
+    public void setHoraSalida(LocalTime horaSalida) {
+        this.horaSalida = horaSalida;
     }
 }

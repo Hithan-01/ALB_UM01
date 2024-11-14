@@ -58,7 +58,7 @@ public class CoachControlador {
     }
     
     @PostMapping("/guardarAsistencia/{idLista}")
-    public String guardarAsistencia(@PathVariable Long idLista, @RequestParam("asistencias") List<Long> asistencias) {
+    public String guaradarAsistencia(@PathVariable Long idLista, @RequestParam("asistencias") List<Long> asistencias) {
        
         Entidad_Lista lista = listaServicio.obtenerListaPorId(idLista);
 

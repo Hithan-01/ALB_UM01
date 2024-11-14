@@ -2,11 +2,19 @@ package com.demo.alb_um.Modulos.Admn;
 
 import com.demo.alb_um.DTOs.AdminDTO;
 import com.demo.alb_um.DTOs.CitaDTO;
+import com.demo.alb_um.DTOs.TallerDTO;
 import com.demo.alb_um.Modulos.Citas.CitaRepositorio;
 import com.demo.alb_um.Modulos.Citas.Ent_Cita;
+import com.demo.alb_um.Modulos.Inscripcion_Taller.InscripcionTallerServicio;
 import com.demo.alb_um.Modulos.Servicio.Ent_Servicio;
+import com.demo.alb_um.Modulos.Taller.Ent_Taller;
+import com.demo.alb_um.Modulos.Taller.Ent_Taller.EstadoTaller;
+import com.demo.alb_um.Modulos.Taller.TallerRepositorio;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -22,6 +30,11 @@ public class UsuarioAdminServicio {
 
     @Autowired
     private CitaRepositorio citaRepositorio;
+
+    @Autowired TallerRepositorio tallerRepository;
+
+    @Autowired
+    private InscripcionTallerServicio inscripcionTallerServicio;
 
     /**
      * Obtiene la información completa del administrador, incluyendo su nombre, cargo, servicio y las citas asociadas.
@@ -91,4 +104,51 @@ public class UsuarioAdminServicio {
                 nombreCompletoAlumno
         );
     }
+
+    public List<TallerDTO> obtenerTalleresFinalizadosHoy() {
+        LocalDate hoy = LocalDate.now();
+        LocalTime ahora = LocalTime.now();
+        Integer duracionMinima = 1; // O el valor mínimo de duración que quieras considerar
+    
+        return tallerRepository.findByFechaAndHoraBeforeAndDuracion(hoy, ahora, duracionMinima)
+            .stream()
+            .filter(taller -> {
+                LocalTime horaFinTaller = taller.getHora().toLocalTime().plusMinutes(taller.getDuracion());
+                return ahora.isAfter(horaFinTaller);
+            })
+            .map(this::convertToDTO)
+            .collect(Collectors.toList());
+    }
+
+    private TallerDTO convertToDTO(Ent_Taller taller) {
+        TallerDTO dto = new TallerDTO(
+            taller.getIdTaller(),
+            taller.getNombre(),
+            taller.getDescripcion(),
+            taller.getFecha().toLocalDate(),
+            taller.getHora().toLocalTime(),
+            taller.getDuracion(),
+            taller.getCuposDisponibles(),
+            taller.getEstado(),
+            taller.getTiempoTranscurrido()
+        );
+        
+        // Establecer campos adicionales que no están en el constructor
+        dto.setTallerLleno(taller.getCuposDisponibles() == 0);
+        dto.setEstaInscrito(false);  // Este valor se debe actualizar en otro lugar según la lógica de tu aplicación
+        
+        return dto;
+    }
+
+    
+    public List<TallerDTO> obtenerTalleresDelDia() {
+        return inscripcionTallerServicio.obtenerTalleresDelDia();
+    }
+
+    public List<TallerDTO> obtenerTalleresEnCurso() {
+    return tallerRepository.findByEstado(EstadoTaller.EN_CURSO)
+        .stream()
+        .map(this::convertToDTO)
+        .collect(Collectors.toList());
+}
 }

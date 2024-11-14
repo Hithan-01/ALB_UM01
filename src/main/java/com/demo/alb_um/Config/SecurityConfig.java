@@ -12,19 +12,19 @@ import org.springframework.security.web.SecurityFilterChain;
 @EnableWebSecurity
 public class SecurityConfig {
 
-    
-
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+            .csrf(csrf -> csrf.disable())  // Deshabilitar CSRF temporalmente
             .authorizeHttpRequests(authorize -> authorize
                 .requestMatchers("/login", "/resources/**").permitAll()
+                .requestMatchers("/portal/admin/**").hasRole("ADMIN")  // Permitir acceso a rutas de admin
                 .requestMatchers("/portal/inicio").authenticated()
                 .anyRequest().authenticated()
             )
             .formLogin(form -> form
                 .loginPage("/login")
-                .defaultSuccessUrl("/portal/inicio", true)  // Redirige a /portal/inicio después del login
+                .defaultSuccessUrl("/portal/inicio", true)
                 .permitAll()
             )
             .logout(logout -> logout
@@ -39,4 +39,3 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 }
-

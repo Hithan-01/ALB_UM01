@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Pase de Lista</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container mt-4">
+        <h2>Pase de Lista</h2>
+        
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title">Escanear Credencial</h5>
+                <input type="text" id="tagInput" class="form-control" 
+                       placeholder="Escanee la credencial..." autofocus>
+                <div id="mensajeStatus" class="mt-2"></div>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Alumno</th>
+                        <th>Tag</th>
+                        <th>Hora Llegada</th>
+                        <th>Hora Salida</th>
+                        <th>Estado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="inscripcion : ${inscripciones}">
+                        <td th:text="${inscripcion.usuarioAlumno.usuario.nombre + ' ' + 
+                                    inscripcion.usuarioAlumno.usuario.apellido}"></td>
+                        <td th:text="${inscripcion.usuarioAlumno.usuario.tagCredencial}"></td>
+                        <td th:text="${inscripcion.horaLlegada}"></td>
+                        <td th:text="${inscripcion.horaSalida}"></td>
+                        <td th:text="${inscripcion.estadoAsistencia}"></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        const tallerId = /*[[${tallerId}]]*/
+        
+        document.getElementById('tagInput').addEventListener('input', function(e) {
+            if (e.target.value.length >= 8) {
+                registrarTag(e.target.value);
+                e.target.value = '';
+            }
+        });
+
+        function registrarTag(tag) {
+            fetch(`/portal/admin/taller/${tallerId}/registrarTag?tagCredencial=${tag}`, {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                const statusDiv = document.getElementById('mensajeStatus');
+                if (data.error) {
+                    statusDiv.innerHTML = `<div class="alert alert-danger">${data.message}</div>`;
+                } else {
+                    statusDiv.innerHTML = `<div class="alert alert-success">${data.message}</div>`;
+                    setTimeout(() => location.reload(), 2000);
+                }
+            });
+        }
+    </script>
+</body>
+</html>
