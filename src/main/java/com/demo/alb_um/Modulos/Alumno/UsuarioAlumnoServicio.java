@@ -1,5 +1,4 @@
 package com.demo.alb_um.Modulos.Alumno;
-
 import com.demo.alb_um.DTOs.AlumnoDTO;
 import com.demo.alb_um.DTOs.CitaDTO;
 import com.demo.alb_um.DTOs.TallerInscripcionDTO;
@@ -33,6 +32,8 @@ public class UsuarioAlumnoServicio {
 
     @Autowired
     private InscripcionTallerRepositorio inscripcionTallerRepositorio;
+
+
 
     // Obtener información completa del alumno por nombre de usuario
     public Optional<AlumnoDTO> obtenerInformacionAlumnoPorUserName(String userName) {
@@ -173,4 +174,17 @@ public class UsuarioAlumnoServicio {
                 alumno.getSemestre()
         );
     }
+
+    
+    public Optional<Ent_Cita> obtenerCitaConfirmadaDeAntropometria(Long idUsuarioAlumno) {
+        List<Ent_Cita> citas = citaRepositorio.findByUsuarioAlumno_IdUsuarioAlumnoAndHorarioServicio_Servicio_NombreAndEstadoAsistenciaAndVerificacionTrue(
+            idUsuarioAlumno, "Antropometría", "ASISTIO");
+    
+        // Si hay citas, devolver la más reciente (puedes ajustar esto si necesitas algo diferente)
+        if (!citas.isEmpty()) {
+            return Optional.of(citas.get(0));
+        }
+        return Optional.empty();
+    }
+    
 }

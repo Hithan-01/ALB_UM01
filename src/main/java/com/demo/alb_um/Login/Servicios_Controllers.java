@@ -18,6 +18,8 @@ import com.demo.alb_um.Modulos.Coach.CoachActividadServicio;
 import com.demo.alb_um.Modulos.Inscripcion_Taller.InscripcionTallerServicio;
 import com.demo.alb_um.Modulos.Taller.Ent_Taller.EstadoTaller;
 import com.demo.alb_um.Modulos.Alumno.UsuarioAlumnoServicio;
+import com.demo.alb_um.Modulos.Antropometria.AntropometriaServicio;
+import com.demo.alb_um.Modulos.Antropometria.Ent_Antro;
 import com.demo.alb_um.Modulos.Admn.UsuarioAdminServicio;
 
 @Service
@@ -33,42 +35,64 @@ public class Servicios_Controllers {
         return "error"; 
     }
 
-    public String cargarVistaAlumno(String userName, UsuarioAlumnoServicio usuarioAlumnoServicio, Model model) {
-        Optional<AlumnoDTO> alumnoOpt = usuarioAlumnoServicio.obtenerInformacionAlumnoPorUserName(userName);
-        if (alumnoOpt.isPresent()) {
-            AlumnoDTO alumno = alumnoOpt.get();
-            
-            // Obtener citas y talleres pendientes
-            List<CitaDTO> citasPendientes = usuarioAlumnoServicio.obtenerCitasPendientes(userName);
-            List<TallerInscripcionDTO> talleresPendientes = usuarioAlumnoServicio.obtenerTalleresPendientes(userName);
-
-            // Obtener citas y talleres confirmados
-            List<CitaDTO> citasConfirmadas = usuarioAlumnoServicio.obtenerCitasConfirmadas(userName);
-            List<TallerInscripcionDTO> talleresConfirmados = usuarioAlumnoServicio.obtenerTalleresConfirmados(userName);
-
-            // Añadir las listas al modelo
-            model.addAttribute("alumno", alumno);
-            model.addAttribute("citasPendientes", citasPendientes);
-            model.addAttribute("talleresPendientes", talleresPendientes);
-            model.addAttribute("citasConfirmadas", citasConfirmadas);
-            model.addAttribute("talleresConfirmados", talleresConfirmados);
-
-            // Calcular si no hay pendientes
-            boolean noPendientes = talleresPendientes.isEmpty() && citasPendientes.isEmpty();
-            model.addAttribute("noPendientes", noPendientes);
-
-            return "alumno"; 
-        }
-        return "error"; 
-    }
-
+    
     private final InscripcionTallerServicio inscripcionTallerServicio;
 
-
+    private final AntropometriaServicio antropometriaServicio;
     @Autowired
-    public Servicios_Controllers(InscripcionTallerServicio inscripcionTallerServicio) {
-        this.inscripcionTallerServicio = inscripcionTallerServicio;
+public Servicios_Controllers(InscripcionTallerServicio inscripcionTallerServicio, AntropometriaServicio antropometriaServicio) {
+    this.inscripcionTallerServicio = inscripcionTallerServicio;
+    this.antropometriaServicio = antropometriaServicio;
+}
+
+    
+
+   
+
+
+public String cargarVistaAlumno(
+    String userName,
+    UsuarioAlumnoServicio usuarioAlumnoServicio,
+    Model model
+) {
+    Optional<AlumnoDTO> alumnoOpt = usuarioAlumnoServicio.obtenerInformacionAlumnoPorUserName(userName);
+    if (alumnoOpt.isPresent()) {
+        AlumnoDTO alumno = alumnoOpt.get();
+
+        // Obtener citas y talleres
+        List<CitaDTO> citasPendientes = usuarioAlumnoServicio.obtenerCitasPendientes(userName);
+        List<TallerInscripcionDTO> talleresPendientes = usuarioAlumnoServicio.obtenerTalleresPendientes(userName);
+        List<CitaDTO> citasConfirmadas = usuarioAlumnoServicio.obtenerCitasConfirmadas(userName);
+        List<TallerInscripcionDTO> talleresConfirmados = usuarioAlumnoServicio.obtenerTalleresConfirmados(userName);
+
+        // Obtener datos antropométricos de una cita confirmada de antropometría
+        Optional<Ent_Antro> datosAntroOpt = antropometriaServicio.obtenerDatosAntropometricosPorCita(alumno.getIdUsuarioAlumno());
+        datosAntroOpt.ifPresentOrElse(
+            datosAntro -> model.addAttribute("datosAntro", datosAntro),
+            () -> model.addAttribute("datosAntro", null) // Si no hay, establecer null
+        );
+
+        // Añadir datos al modelo
+        model.addAttribute("alumno", alumno);
+        model.addAttribute("citasPendientes", citasPendientes);
+        model.addAttribute("talleresPendientes", talleresPendientes);
+        model.addAttribute("citasConfirmadas", citasConfirmadas);
+        model.addAttribute("talleresConfirmados", talleresConfirmados);
+
+        // Calcular si no hay pendientes
+        boolean noPendientes = talleresPendientes.isEmpty() && citasPendientes.isEmpty();
+        model.addAttribute("noPendientes", noPendientes);
+
+        return "alumno";
     }
+
+    model.addAttribute("mensajeError", "No se encontró información para el alumno.");
+    return "error";
+}
+
+    
+
+
     
     public String cargarVistaAdmin(String userName, UsuarioAdminServicio usuarioAdminServicio, Model model) {
         Optional<AdminDTO> adminOpt = usuarioAdminServicio.obtenerInformacionAdminPorUserName(userName);

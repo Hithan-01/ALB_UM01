@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -15,6 +16,8 @@ import java.util.stream.Collectors;
 import java.time.LocalDate;
 import com.demo.alb_um.Modulos.Admn.Ent_UsuarioAdmin;
 import com.demo.alb_um.Modulos.Alumno.UsuarioAlumnoServicio;
+import com.demo.alb_um.Modulos.Antropometria.AntropometriaServicio;
+import com.demo.alb_um.Modulos.Antropometria.Ent_Antro;
 import com.demo.alb_um.Modulos.Citas.CitaRepositorio;
 import com.demo.alb_um.Modulos.Citas.CitaServicio;
 import com.demo.alb_um.Modulos.Citas.Ent_Cita;
@@ -36,19 +39,23 @@ public class AlumnoControlador {
     private final HorarioServicioRepositorio horarioServicioRepositorio;
     private final InscripcionTallerServicio inscripcionTallerServicio; // Nuevo servicio
     private final CitaRepositorio citaRepositorio;
+    private final AntropometriaServicio antropometriaServicio;
 
     @Autowired
     public AlumnoControlador(UsuarioAlumnoServicio usuarioAlumnoServicio, 
                              CitaServicio citaServicio,
                              HorarioServicioServicio horarioServicio, 
                              HorarioServicioRepositorio horarioServicioRepositorio,
-                             InscripcionTallerServicio inscripcionTallerServicio, CitaRepositorio citaRepositorio) { // Inyecta el nuevo servicio
+                             InscripcionTallerServicio inscripcionTallerServicio, 
+                             CitaRepositorio citaRepositorio,
+                             AntropometriaServicio antropometriaServicio) { // Inyecta el nuevo servicio
         this.usuarioAlumnoServicio = usuarioAlumnoServicio;
         this.citaServicio = citaServicio;
         this.horarioServicio = horarioServicio;
         this.horarioServicioRepositorio = horarioServicioRepositorio;
         this.inscripcionTallerServicio = inscripcionTallerServicio; // Asigna el servicio
         this.citaRepositorio = citaRepositorio;
+        this.antropometriaServicio = antropometriaServicio;
     }
 
     @GetMapping("/servicios")
@@ -200,5 +207,21 @@ public String agendarCita(@RequestParam("horarioId") Long horarioId, Model model
     model.addAttribute("mensaje", "Cita de Antropometría agendada correctamente para: " + alumno.getNombreCompleto());
     return "resultadoCita";
 }
+
+@GetMapping("/antropometria/{id}/datos")
+public String verDatosAntropometricos(@PathVariable Long id, Model model) {
+    List<Ent_Antro> datosAntroList = antropometriaServicio.obtenerDatosPorAlumno(id);
+
+    if (datosAntroList != null && !datosAntroList.isEmpty()) {
+        // Obtener el último registro (asumiendo que están ordenados por fecha de creación)
+        Ent_Antro ultimoDato = datosAntroList.get(datosAntroList.size() - 1);
+        model.addAttribute("datosAntro", ultimoDato);
+        return "verDatosAntropometricos";
+    } else {
+        model.addAttribute("mensajeError", "No hay datos antropométricos disponibles para este alumno.");
+        return "error";
+    }
+}
+
 
 }

@@ -70,11 +70,14 @@ public class UsuarioAdminServicio {
      * @return Lista de CitaDTO con las citas pendientes.
      */
     public List<CitaDTO> obtenerCitasPendientesPorServicio(Long servicioId) {
-        return citaRepositorio.findByUsuarioAdmin_Servicio_IdServicioAndVerificacionFalse(servicioId)
-                .stream()
-                .map(this::convertirACitaDTO)  // Reutilizamos la conversión de Cita a CitaDTO
-                .collect(Collectors.toList());
+        LocalDate hoy = LocalDate.now();
+        List<Ent_Cita> citasPendientes = citaRepositorio.findByFechaAndServicioAndPendientes(hoy, servicioId);
+        System.out.println("Citas encontradas para el servicio " + servicioId + ": " + citasPendientes.size());
+        return citasPendientes.stream()
+            .map(this::convertirACitaDTO)
+            .collect(Collectors.toList());
     }
+    
 
     /**
      * Convierte una Ent_Cita a un CitaDTO.
@@ -84,15 +87,22 @@ public class UsuarioAdminServicio {
     private CitaDTO convertirACitaDTO(Ent_Cita cita) {
         LocalDate diaSemana = null;
         LocalTime hora = null;
-
-        // Verificamos si el horario de servicio es nulo para no lanzar errores de null pointer
+    
         if (cita.getHorarioServicio() != null) {
             diaSemana = cita.getHorarioServicio().getDiaSemana();
             hora = cita.getHorarioServicio().getHora();
+        } else {
+            System.out.println("HorarioServicio es nulo para la cita con ID: " + cita.getIdCita());
         }
-
-        String nombreCompletoAlumno = cita.getUsuarioAlumno().getUsuario().getNombre() + " " + cita.getUsuarioAlumno().getUsuario().getApellido();
-
+    
+        String nombreCompletoAlumno = "";
+        if (cita.getUsuarioAlumno() != null && cita.getUsuarioAlumno().getUsuario() != null) {
+            nombreCompletoAlumno = cita.getUsuarioAlumno().getUsuario().getNombre() + " " +
+                                   cita.getUsuarioAlumno().getUsuario().getApellido();
+        } else {
+            System.out.println("UsuarioAlumno o Usuario es nulo para la cita con ID: " + cita.getIdCita());
+        }
+    
         return new CitaDTO(
                 cita.getIdCita(),
                 cita.getUsuarioAdmin().getServicio().getNombre(),
@@ -104,7 +114,7 @@ public class UsuarioAdminServicio {
                 nombreCompletoAlumno
         );
     }
-
+    
     public List<TallerDTO> obtenerTalleresFinalizadosHoy() {
         LocalDate hoy = LocalDate.now();
         LocalTime ahora = LocalTime.now();

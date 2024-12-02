@@ -34,7 +34,10 @@ public class Entidad_Usuario {
     private String rol;
 
     @Column(name = "tag_credencial", length = 50, unique = true)
-    private String tagCredencial;
+    private String tagCredencial; // No validación estricta
+
+    @Column(name = "genero", length = 1)
+    private String genero;  // 'M' o 'F'
 
     @OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
@@ -48,8 +51,6 @@ public class Entidad_Usuario {
     @JsonManagedReference
     private Set<Ent_UsuarioAdmin> admins;
 
-
-    // Getters y setters
 
     public Long getIdUsuario() {
         return idUsuario;
@@ -136,5 +137,13 @@ public class Entidad_Usuario {
 
     public void setTagCredencial(String tagCredencial) {
         this.tagCredencial = tagCredencial;
+    }
+
+    public String getGenero() {
+        return genero;
+    }
+
+    public void setGenero(String genero) {
+        this.genero = genero;
     }
 }

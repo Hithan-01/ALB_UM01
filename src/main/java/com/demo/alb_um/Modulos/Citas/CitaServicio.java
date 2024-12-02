@@ -73,7 +73,7 @@ public class CitaServicio {
         horarioServicioRepositorio.save(horarioServicio);
     }
     
-    
+    /* 
     public void validarCita(Long citaId, Ent_UsuarioAdmin admin) {
         // Buscar la cita por su ID
         Ent_Cita cita = citasRepositorio.findById(citaId)
@@ -88,7 +88,8 @@ public class CitaServicio {
         // Guardar la cita actualizada en la base de datos
         citasRepositorio.save(cita);
     }
-
+    */
+    
     public boolean tieneCitaParaAntropometria(Long idAlumno) {
         // Buscar si ya existe una cita para el alumno en el servicio de Antropometría
         return citasRepositorio.existsByUsuarioAlumno_IdUsuarioAlumnoAndHorarioServicio_Servicio_Nombre(idAlumno, "Antropometria");

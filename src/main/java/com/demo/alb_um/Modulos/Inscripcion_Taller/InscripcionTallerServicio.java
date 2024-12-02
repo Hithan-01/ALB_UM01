@@ -475,29 +475,31 @@ public boolean estaInscritoEnTaller(Long idAlumno, Long idTaller) {
     
             Ent_InscripcionTaller inscripcion = inscripcionOpt.get();
     
-            // Verificar si tiene hora de llegada válida
+            // Verificar si tiene hora de llegada registrada
             if (inscripcion.getHoraLlegada() == null) {
                 response.put("error", true);
                 response.put("message", "No se ha registrado una hora de llegada.");
                 return response;
             }
     
-            // Verificar si la hora de llegada fue válida
-            if ("LLEGADA_INVALIDA".equals(inscripcion.getEstadoAsistencia())) {
-                response.put("error", true);
-                response.put("message", "La hora de llegada no fue válida.");
-                return response;
-            }
-    
-            // Registrar la hora de salida y actualizar el estado de asistencia
+            // Registrar la hora de salida incluso si la hora de llegada es inválida
             inscripcion.setHoraSalida(ahora);
-            inscripcion.setEstadoAsistencia("ASISTIO");
-            inscripcion.setVerificacion(true);
+    
+            // Verificar si la hora de llegada es inválida
+            if ("LLEGADA_INVALIDA".equals(inscripcion.getEstadoAsistencia())) {
+                inscripcion.setEstadoAsistencia("LLEGADA_INVALIDA");
+                response.put("warning", true);
+                response.put("message", "La hora de llegada fue inválida, pero la hora de salida se ha registrado correctamente.");
+            } else {
+                inscripcion.setEstadoAsistencia("ASISTIO");
+                inscripcion.setVerificacion(true);
+                response.put("message", "Asistencia registrada correctamente.");
+            }
     
             // Guardar la inscripción
             RepositorioInscripcionTaller.save(inscripcion);
             response.put("error", false);
-            response.put("message", "Asistencia registrada correctamente.");
+            response.put("horaSalida", ahora.toString());
     
         } catch (Exception e) {
             response.put("error", true);

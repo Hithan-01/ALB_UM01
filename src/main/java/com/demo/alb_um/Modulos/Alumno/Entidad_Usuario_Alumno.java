@@ -1,5 +1,6 @@
 package com.demo.alb_um.Modulos.Alumno;
 import com.demo.alb_um.Modulos.Alumno_Actividad.Ent_AlumnoActividad;
+import com.demo.alb_um.Modulos.Antropometria.Ent_Antro;
 import com.demo.alb_um.Modulos.Asitencia_Act.Ent_AsistenciaActividadFisica;
 import com.demo.alb_um.Modulos.Citas.Ent_Cita;
 import com.demo.alb_um.Modulos.Inscripcion_Taller.Ent_InscripcionTaller;
@@ -27,6 +28,9 @@ public class Entidad_Usuario_Alumno {
     @Column(name = "residencia", length = 20)
     private String residencia;
 
+    @Column(name = "carrera", length = 50)
+    private String carrera; // Nuevo campo agregado
+
     @ManyToOne
     @JoinColumn(name = "usuario_id", nullable = false)
     @JsonBackReference
@@ -47,6 +51,10 @@ public class Entidad_Usuario_Alumno {
     @OneToMany(mappedBy = "usuarioAlumno", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonManagedReference
     private Set<Ent_Cita> citas;
+
+    @OneToMany(mappedBy = "usuarioAlumno", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private Set<Ent_Antro> datosAntropometricos;
+
 
     // Getters and Setters
 

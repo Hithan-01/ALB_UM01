@@ -65,37 +65,37 @@
                 </form>
             </div>
 
-            <!-- Si el administrador ES de Antropometría, mostrar las citas pendientes con un botón para validarlas -->
             <div th:if="${admin.servicio.nombre == 'Antropometria'}">
                 <h3>Citas Pendientes</h3>
-                <form th:action="@{/portal/admin/antropometria/validarCita}" method="post">
-                    <table class="table table-bordered">
-                        <thead>
-                            <tr>
-                                <th>Seleccionar</th>
-                                <th>Fecha</th>
-                                <th>Hora</th>
-                                <th>Alumno</th>
-                                <th>Estado Asistencia</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr th:each="cita : ${citasPendientes}">
-                                <!-- Input radio para seleccionar la cita -->
-                                <td><input type="radio" name="citaId" th:value="${cita.id}" required></td>
-                                <td th:text="${cita.diaSemana}"></td>
-                                <td th:text="${cita.hora}"></td>
-                                <!-- Utiliza el nombre correcto del campo del DTO -->
-                                <td th:text="${cita.nombreCompletoAlumno}"></td>
-                                <td th:text="${cita.estadoAsistencia}"></td>
-                            </tr>
-                        </tbody>
-                    </table>
-
-                    <!-- Botón para validar la cita seleccionada -->
-                    <button type="submit" class="btn btn-primary mt-3">Validar Cita</button>
-                </form>
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Hora</th>
+                            <th>Alumno</th>
+                            <th>Estado Asistencia</th>
+                            <th>Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="cita : ${citasPendientes}">
+                            <td th:text="${cita.diaSemana}"></td>
+                            <td th:text="${cita.hora}"></td>
+                            <td th:text="${cita.nombreCompletoAlumno}"></td>
+                            <td th:text="${cita.estadoAsistencia}"></td>
+                            <td>
+                                <!-- Enlace para redirigir al formulario -->
+                                <a th:href="@{/portal/admin/antropometria/{id}/datos(id=${cita.id})}" class="btn btn-primary">Registrar Datos</a>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            
+                <div th:if="${citasPendientes.size() == 0}">
+                    <p>No hay citas pendientes para hoy.</p>
+                </div>
             </div>
+            
 
             <div th:if="${admin.servicio.nombre == 'Talleres'}" class="talleres-section">
                 <div class="card mb-4">
@@ -125,35 +125,33 @@
                                             </span>
                                         </td>
                                         <td>
-                                            <!-- Botón de registro de llegada -->
-                                            <button th:if="${taller.puedeRegistrarLlegada}"
-                                                    class="btn btn-sm btn-primary"
-                                                    onclick="mostrarModalRegistro(this)"
-                                                    th:data-taller-id="${taller.idTaller}"
-                                                    th:data-taller-nombre="${taller.nombre}">
-                                                Registrar Llegada
-                                            </button>
-                                            
-                                            <!-- Botón de detener taller -->
-                                            <form th:if="${taller.estado.name() == 'EN_CURSO'}"
-                                                  th:action="@{/portal/admin/taller/{id}/detener(id=${taller.idTaller})}"
-                                                  method="post" style="display: inline;">
-                                                <button type="submit" class="btn btn-sm btn-warning">
-                                                    Detener Taller
+                                            <div th:if="${taller.estado != 'FINALIZADO'}">
+                                                <!-- Botón de registro de llegada -->
+                                                <button th:if="${taller.puedeRegistrarLlegada}"
+                                                        class="btn btn-sm btn-primary"
+                                                        onclick="mostrarModalRegistro(this)"
+                                                        th:data-taller-id="${taller.idTaller}"
+                                                        th:data-taller-nombre="${taller.nombre}">
+                                                    Registrar Llegada
                                                 </button>
-                                            </form>
-
-                                            <div th:if="${taller.estado.name() == 'FINALIZADO'}">
-                                                <button class="btn btn-primary"
-                                                        th:attr="data-idTaller=${taller.idTaller}"
-                                                        onclick="registrarSalida(this)"
-                                                        type="button">
-                                                    Registrar Hora de Salida
-                                                </button>
+                                                
+                                                <!-- Botón de detener taller -->
+                                                <form th:if="${taller.estado == 'EN_CURSO'}"
+                                                      th:action="@{/portal/admin/taller/{id}/detener(id=${taller.idTaller})}"
+                                                      method="post" style="display: inline;">
+                                                    <button type="submit" class="btn btn-sm btn-warning">
+                                                        Detener Taller
+                                                    </button>
+                                                </form>
                                             </div>
+                                            <!-- Mostrar solo el mensaje para talleres finalizados -->
+                                            <span th:if="${taller.estado == 'FINALIZADO'}" class="text-muted">
+                                                Taller finalizado
+                                            </span>
                                         </td>
                                     </tr>
                                 </tbody>
+                                
                             </table>
                         </div>
                     </div>

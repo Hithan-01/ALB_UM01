@@ -5,6 +5,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -22,6 +23,9 @@ import java.time.LocalTime;
 import com.demo.alb_um.Modulos.Admn.Ent_UsuarioAdmin;
 import com.demo.alb_um.Modulos.Admn.UsuarioAdminRepositorio;
 import com.demo.alb_um.Modulos.Alumno.UsuarioAlumnoServicio;
+import com.demo.alb_um.Modulos.Antropometria.AntropometriaRepositorio;
+import com.demo.alb_um.Modulos.Antropometria.AntropometriaServicio;
+import com.demo.alb_um.Modulos.Antropometria.Ent_Antro;
 import com.demo.alb_um.Modulos.Citas.CitaServicio;
 import com.demo.alb_um.Modulos.Inscripcion_Taller.Ent_InscripcionTaller;
 import com.demo.alb_um.Modulos.Inscripcion_Taller.InscripcionTallerRepositorio;
@@ -37,19 +41,24 @@ public class AdminControlador {
     private final CitaServicio citaServicio;
     private final UsuarioAdminRepositorio usuarioAdminRepositorio;
     private final InscripcionTallerServicio inscripcionTallerServicio;
-
     private final InscripcionTallerRepositorio inscripcionTallerRepositorio;
+    private final AntropometriaRepositorio antropometriaRepositorio;
+    private final AntropometriaServicio antropometriaServicio;
     @Autowired
     public AdminControlador(UsuarioAlumnoServicio usuarioAlumnoServicio, 
                             CitaServicio citaServicio, 
                             UsuarioAdminRepositorio usuarioAdminRepositorio, 
                             InscripcionTallerServicio inscripcionTallerServicio, 
-                            InscripcionTallerRepositorio inscripcionTallerRepositorio) {
+                            InscripcionTallerRepositorio inscripcionTallerRepositorio,
+                            AntropometriaRepositorio antropometriaRepositorio,
+                            AntropometriaServicio antropometriaServicio) {
         this.usuarioAlumnoServicio = usuarioAlumnoServicio;
         this.citaServicio = citaServicio;
         this.usuarioAdminRepositorio = usuarioAdminRepositorio;
         this.inscripcionTallerServicio = inscripcionTallerServicio;
         this.inscripcionTallerRepositorio = inscripcionTallerRepositorio;
+        this.antropometriaRepositorio = antropometriaRepositorio;
+        this.antropometriaServicio = antropometriaServicio;
     }
 
     // Buscar Alumno - Para administradores que no sean de Antropometría
@@ -91,7 +100,7 @@ public class AdminControlador {
         return "error";
     }
 
-    // Validar Cita - Exclusivo para administradores de Antropometría
+    /* 
     @PostMapping("/antropometria/validarCita")
     public String validarCita(@RequestParam("citaId") Long citaId, RedirectAttributes redirectAttributes, Principal principal) {
         Optional<Ent_UsuarioAdmin> adminOpt = usuarioAdminRepositorio.findByUsuario_UserName(principal.getName());
@@ -111,6 +120,41 @@ public class AdminControlador {
         
         return "redirect:/portal/inicio";
     }
+*/
+    @GetMapping("/antropometria/{id}/datos")
+public String mostrarFormularioDatos(@PathVariable Long id, Model model) {
+    Optional<Ent_Antro> datosOpt = antropometriaRepositorio.findByCitaId(id);
+    Ent_Antro datosAntro = datosOpt.orElse(new Ent_Antro());
+    model.addAttribute("datosAntro", datosAntro);
+    model.addAttribute("citaId", id);
+    return "formularioDatosAntro";
+}
+
+@PostMapping("/antropometria/{id}/datos")
+public String guardarDatosAntroYValidarCita(
+    @PathVariable Long id,
+    @ModelAttribute("datosAntro") Ent_Antro datosAntro,
+    Principal principal,
+    RedirectAttributes redirectAttributes) {
+
+    // Obtener al administrador que realiza la acción
+    Optional<Ent_UsuarioAdmin> adminOpt = usuarioAdminRepositorio.findByUsuario_UserName(principal.getName());
+    if (adminOpt.isEmpty() || !esAdminAntropometria(adminOpt.get())) {
+        redirectAttributes.addFlashAttribute("mensajeError", "No tienes permisos para realizar esta acción.");
+        return "redirect:/portal/admin";
+    }
+
+    try {
+        // Llamar al servicio para guardar los datos y validar la cita
+        antropometriaServicio.guardarDatosAntroYValidarCita(id, datosAntro, adminOpt.get());
+        redirectAttributes.addFlashAttribute("mensajeExito", "Datos registrados y cita validada correctamente.");
+    } catch (IllegalArgumentException e) {
+        redirectAttributes.addFlashAttribute("mensajeError", e.getMessage());
+    }
+
+    return "redirect:/portal/inicio"; 
+}
+
 
     // Método compartido para verificar si un admin es de Antropometría
     private boolean esAdminAntropometria(Ent_UsuarioAdmin admin) {
@@ -234,8 +278,6 @@ public Map<String, Object> registrarSalida(
 
     return response;
 }
-
-   
 
      // Manejador de errores para este controlador
     @ExceptionHandler(Exception.class)
