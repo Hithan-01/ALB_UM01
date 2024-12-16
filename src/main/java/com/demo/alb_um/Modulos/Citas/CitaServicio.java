@@ -8,6 +8,9 @@ import com.demo.alb_um.Modulos.Alumno.UsuarioAlumnoRepositorio;
 import com.demo.alb_um.Modulos.Horario_servicio.Ent_HorarioServicio;
 import com.demo.alb_um.Modulos.Horario_servicio.HorarioServicioRepositorio;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -34,19 +37,34 @@ public class CitaServicio {
     @Autowired
     private UsuarioAlumnoRepositorio usuarioAlumnoRepositorio;
 
-    public void generarCita(Ent_UsuarioAdmin admin, Long idUsuarioAlumno, String estadoAsistencia) {
-        Entidad_Usuario_Alumno usuarioAlumno = usuarioAlumnoRepositorio.findById(idUsuarioAlumno)
-                .orElseThrow(() -> new IllegalArgumentException("Alumno no encontrado"));
-    
-        Ent_Cita nuevaCita = new Ent_Cita();
-        nuevaCita.setUsuarioAlumno(usuarioAlumno);
-        nuevaCita.setUsuarioAdmin(admin);
-        nuevaCita.setAutorizadoPor(admin.getUsuario().getNombre() + " " + admin.getUsuario().getApellido());
-        nuevaCita.setVerificacion(true);
-        nuevaCita.setEstadoAsistencia(estadoAsistencia);
-    
-        citasRepositorio.save(nuevaCita);
-    }
+   public void generarCita(Ent_UsuarioAdmin admin, Long idUsuarioAlumno, String estadoAsistencia) {
+    // Buscar al alumno
+    Entidad_Usuario_Alumno usuarioAlumno = usuarioAlumnoRepositorio.findById(idUsuarioAlumno)
+            .orElseThrow(() -> new IllegalArgumentException("Alumno no encontrado"));
+
+    // Crear un nuevo horario dinámico con la fecha y hora actuales
+    Ent_HorarioServicio nuevoHorario = new Ent_HorarioServicio();
+    nuevoHorario.setDiaSemana(LocalDate.now()); // Fecha actual
+    nuevoHorario.setHora(LocalTime.now()); // Hora actual
+    nuevoHorario.setDisponible(false); // No disponible para otras citas
+    nuevoHorario.setServicio(null); // Puedes asignar un servicio genérico o dejarlo nulo
+
+    // Guardar el horario en la base de datos
+    nuevoHorario = horarioServicioRepositorio.save(nuevoHorario);
+
+    // Crear la cita asociada al alumno y al horario dinámico
+    Ent_Cita nuevaCita = new Ent_Cita();
+    nuevaCita.setUsuarioAlumno(usuarioAlumno);
+    nuevaCita.setUsuarioAdmin(admin);
+    nuevaCita.setAutorizadoPor(admin.getUsuario().getNombre() + " " + admin.getUsuario().getApellido());
+    nuevaCita.setVerificacion(true);
+    nuevaCita.setEstadoAsistencia(estadoAsistencia);
+    nuevaCita.setHorarioServicio(nuevoHorario); // Asociar el horario dinámico
+
+    // Guardar la cita en la base de datos
+    citasRepositorio.save(nuevaCita);
+}
+
     
     public void generarCitaParaAntropometria(Long idUsuarioAlumno, Long horarioId, Ent_UsuarioAdmin admin) {
         // Obtener al alumno y el horario basados en sus respectivos IDs

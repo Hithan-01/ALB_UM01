@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.HashMap;
@@ -18,18 +19,25 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.security.Principal;
-import java.time.LocalTime;
+import java.time.LocalDate;
+
+import java.time.Period;
 
 import com.demo.alb_um.Modulos.Admn.Ent_UsuarioAdmin;
 import com.demo.alb_um.Modulos.Admn.UsuarioAdminRepositorio;
+import com.demo.alb_um.Modulos.Alumno.Entidad_Usuario_Alumno;
 import com.demo.alb_um.Modulos.Alumno.UsuarioAlumnoServicio;
 import com.demo.alb_um.Modulos.Antropometria.AntropometriaRepositorio;
 import com.demo.alb_um.Modulos.Antropometria.AntropometriaServicio;
 import com.demo.alb_um.Modulos.Antropometria.Ent_Antro;
+import com.demo.alb_um.Modulos.Citas.CitaRepositorio;
 import com.demo.alb_um.Modulos.Citas.CitaServicio;
+import com.demo.alb_um.Modulos.Citas.Ent_Cita;
 import com.demo.alb_um.Modulos.Inscripcion_Taller.Ent_InscripcionTaller;
 import com.demo.alb_um.Modulos.Inscripcion_Taller.InscripcionTallerRepositorio;
 import com.demo.alb_um.Modulos.Inscripcion_Taller.InscripcionTallerServicio;
+import com.demo.alb_um.Modulos.Taller.Ent_Taller;
+import com.demo.alb_um.Modulos.Usuario.Entidad_Usuario;
 import com.demo.alb_um.DTOs.AlumnoDTO;
 
 
@@ -41,9 +49,10 @@ public class AdminControlador {
     private final CitaServicio citaServicio;
     private final UsuarioAdminRepositorio usuarioAdminRepositorio;
     private final InscripcionTallerServicio inscripcionTallerServicio;
-    private final InscripcionTallerRepositorio inscripcionTallerRepositorio;
+    
     private final AntropometriaRepositorio antropometriaRepositorio;
     private final AntropometriaServicio antropometriaServicio;
+    private final CitaRepositorio citaRepositorio;
     @Autowired
     public AdminControlador(UsuarioAlumnoServicio usuarioAlumnoServicio, 
                             CitaServicio citaServicio, 
@@ -51,14 +60,16 @@ public class AdminControlador {
                             InscripcionTallerServicio inscripcionTallerServicio, 
                             InscripcionTallerRepositorio inscripcionTallerRepositorio,
                             AntropometriaRepositorio antropometriaRepositorio,
-                            AntropometriaServicio antropometriaServicio) {
+                            AntropometriaServicio antropometriaServicio,
+                            CitaRepositorio citaRepositorio) {
         this.usuarioAlumnoServicio = usuarioAlumnoServicio;
         this.citaServicio = citaServicio;
         this.usuarioAdminRepositorio = usuarioAdminRepositorio;
         this.inscripcionTallerServicio = inscripcionTallerServicio;
-        this.inscripcionTallerRepositorio = inscripcionTallerRepositorio;
+        
         this.antropometriaRepositorio = antropometriaRepositorio;
         this.antropometriaServicio = antropometriaServicio;
+        this.citaRepositorio = citaRepositorio;
     }
 
     // Buscar Alumno - Para administradores que no sean de Antropometría
@@ -100,35 +111,41 @@ public class AdminControlador {
         return "error";
     }
 
-    /* 
-    @PostMapping("/antropometria/validarCita")
-    public String validarCita(@RequestParam("citaId") Long citaId, RedirectAttributes redirectAttributes, Principal principal) {
-        Optional<Ent_UsuarioAdmin> adminOpt = usuarioAdminRepositorio.findByUsuario_UserName(principal.getName());
-
-        if (adminOpt.isPresent() && esAdminAntropometria(adminOpt.get())) {
-            Ent_UsuarioAdmin admin = adminOpt.get();
-
-            try {
-                citaServicio.validarCita(citaId, admin);
-                redirectAttributes.addFlashAttribute("mensajeExito", "Cita validada correctamente.");
-            } catch (Exception e) {
-                redirectAttributes.addFlashAttribute("mensajeError", "Ocurrió un error al validar la cita.");
-            }
-        } else {
-            redirectAttributes.addFlashAttribute("mensajeError", "No tienes permiso para realizar esta acción.");
-        }
-        
-        return "redirect:/portal/inicio";
-    }
-*/
-    @GetMapping("/antropometria/{id}/datos")
+@GetMapping("/antropometria/{id}/datos")
 public String mostrarFormularioDatos(@PathVariable Long id, Model model) {
-    Optional<Ent_Antro> datosOpt = antropometriaRepositorio.findByCitaId(id);
-    Ent_Antro datosAntro = datosOpt.orElse(new Ent_Antro());
+    // Buscar los datos antropométricos existentes o inicializarlos si no existen
+    Ent_Antro datosAntro = antropometriaRepositorio.findByCitaId(id)
+        .orElse(new Ent_Antro()); // Si no existe, crear una nueva instancia
+
+    // Obtener la cita asociada
+    Ent_Cita cita = datosAntro.getCita();
+    if (cita == null) {
+        cita = citaRepositorio.findById(id)
+            .orElseThrow(() -> new IllegalArgumentException("Cita no encontrada"));
+    }
+
+    // Obtener el usuario asociado a la cita
+    Entidad_Usuario_Alumno alumno = cita.getUsuarioAlumno();
+    Entidad_Usuario usuario = alumno.getUsuario();
+
+    // Calcular edad cronológica
+    Integer edad = calcularEdadPorFechaNacimiento(usuario.getFecha_nacimiento());
+    String genero = usuario.getGenero();
+
+    // Pasar los datos al modelo
     model.addAttribute("datosAntro", datosAntro);
     model.addAttribute("citaId", id);
+    model.addAttribute("edad", edad);
+    model.addAttribute("sexo", genero);
+
     return "formularioDatosAntro";
 }
+
+private Integer calcularEdadPorFechaNacimiento(LocalDate fechaNacimiento) {
+    return fechaNacimiento != null ? Period.between(fechaNacimiento, LocalDate.now()).getYears() : null;
+}
+
+
 
 @PostMapping("/antropometria/{id}/datos")
 public String guardarDatosAntroYValidarCita(
@@ -160,21 +177,31 @@ public String guardarDatosAntroYValidarCita(
     private boolean esAdminAntropometria(Ent_UsuarioAdmin admin) {
         return "Antropometria".equals(admin.getServicio().getNombre());
     }
-
-    @PostMapping("/taller/{id}/detener")  // Cambio aquí para coincidir con la ruta de la vista
+    @PostMapping("/taller/{id}/detener")
     public String detenerTaller(
             @PathVariable Long id,
             RedirectAttributes redirectAttributes) {
         try {
+            // Llamar al servicio para finalizar el taller
             inscripcionTallerServicio.finalizarTaller(id);
+            
+            // Agregar mensaje de éxito
             redirectAttributes.addFlashAttribute("mensajeExito", 
-                "Taller finalizado. Puede proceder a registrar hora de salida.");
-        } catch (Exception e) {
+                "El taller ha sido finalizado exitosamente. Puede proceder a registrar la hora de salida.");
+        } catch (RuntimeException e) {
+            // Agregar mensaje de error en caso de excepción
             redirectAttributes.addFlashAttribute("error", 
                 "Error al finalizar el taller: " + e.getMessage());
+        } catch (Exception e) {
+            // Manejo general de excepciones inesperadas
+            redirectAttributes.addFlashAttribute("error", 
+                "Ocurrió un error inesperado al finalizar el taller. Por favor, inténtelo nuevamente.");
         }
-        return "redirect:/portal/inicio";  // También cambié el redirect para que vaya a la página principal
+        
+        // Redirigir a la página principal u otra vista
+        return "redirect:/portal/inicio";
     }
+    
 
     @GetMapping("/{id}/pasarLista")
     public String mostrarPaseLista(@PathVariable Long id, Model model) {
@@ -227,56 +254,118 @@ public String guardarDatosAntroYValidarCita(
         }
     }
 
-    @PostMapping("/{id}/registrarSalida")
+@PostMapping("/taller/{id}/registrarSalida")
 @ResponseBody
 public Map<String, Object> registrarSalida(
-        @PathVariable Long id,
-        @RequestParam String identificador) {
-    Map<String, Object> response = new HashMap<>();
-
-    try {
-        Optional<Ent_InscripcionTaller> inscripcionOpt = 
-            inscripcionTallerRepositorio.findByTallerAndIdentificador(id, identificador);
-
-        if (!inscripcionOpt.isPresent()) {
-            response.put("error", true);
-            response.put("message", "Alumno no inscrito en este taller.");
-            return response;
+                @PathVariable Long id,
+                @RequestParam String identificador) {
+            return inscripcionTallerServicio.registrarHoraSalida(id, identificador);
         }
 
-        Ent_InscripcionTaller inscripcion = inscripcionOpt.get();
 
-        // Verificar si tiene hora de llegada válida
-        if (inscripcion.getHoraLlegada() == null) {
-            response.put("error", true);
-            response.put("message", "No se ha registrado una hora de llegada.");
-            return response;
-        }
-
-        // Verificar si la hora de llegada fue válida
-        if ("LLEGADA_INVALIDA".equals(inscripcion.getEstadoAsistencia())) {
-            response.put("error", true);
-            response.put("message", "La hora de llegada no fue válida.");
-            return response;
-        }
-
-        // Registrar la hora de salida y actualizar el estado de asistencia
-        inscripcion.setHoraSalida(LocalTime.now());
-        inscripcion.setEstadoAsistencia("ASISTIO");
-        inscripcion.setVerificacion(true);
-
-        // Guardar la inscripción
-        inscripcionTallerRepositorio.save(inscripcion);
-        response.put("error", false);
-        response.put("message", "Asistencia registrada correctamente.");
-
-    } catch (Exception e) {
-        response.put("error", true);
-        response.put("message", "Error al registrar la salida: " + e.getMessage());
-        e.printStackTrace();
+@GetMapping("/talleres/nuevo")
+public String mostrarFormularioNuevoTaller(Model model, Principal principal, RedirectAttributes redirectAttributes) {
+    Optional<Ent_UsuarioAdmin> adminOpt = usuarioAdminRepositorio.findByUsuario_UserName(principal.getName());
+    if (adminOpt.isEmpty() || !esAdminDeTalleres(adminOpt.get())) {
+        redirectAttributes.addFlashAttribute("error", "No tienes permisos para crear talleres.");
+        return "redirect:/portal/admin";
     }
 
-    return response;
+    model.addAttribute("taller", new Ent_Taller());
+    return "crearTaller"; // Vista Thymeleaf para crear talleres
+}
+
+private boolean esAdminDeTalleres(Ent_UsuarioAdmin admin) {
+    return "Talleres".equalsIgnoreCase(admin.getServicio().getNombre());
+}
+
+
+@PostMapping("/talleres/nuevo")
+public String registrarTaller(
+        @ModelAttribute Ent_Taller taller,
+        Principal principal,
+        RedirectAttributes redirectAttributes) {
+
+    Optional<Ent_UsuarioAdmin> adminOpt = usuarioAdminRepositorio.findByUsuario_UserName(principal.getName());
+    if (adminOpt.isEmpty() || !esAdminDeTalleres(adminOpt.get())) {
+        redirectAttributes.addFlashAttribute("error", "No tienes permisos para crear talleres.");
+        return "redirect:/portal/admin/talleres/nuevo";
+    }
+
+    try {
+        // Registrar el taller usando el servicio
+        inscripcionTallerServicio.registrarTaller(taller);
+        redirectAttributes.addFlashAttribute("mensajeExito", "Taller registrado exitosamente.");
+    } catch (Exception e) {
+        redirectAttributes.addFlashAttribute("error", "Error al registrar el taller: " + e.getMessage());
+        return "redirect:/portal/admin/talleres/nuevo"; // Asegúrate de redirigir de vuelta al formulario
+    }
+
+    return "redirect:/portal/admin/talleres/nuevo";
+}
+
+@GetMapping("/talleres")
+public String listarTalleres(Model model, Principal principal, RedirectAttributes redirectAttributes) {
+    Optional<Ent_UsuarioAdmin> adminOpt = usuarioAdminRepositorio.findByUsuario_UserName(principal.getName());
+    if (adminOpt.isEmpty() || !esAdminDeTalleres(adminOpt.get())) {
+        redirectAttributes.addFlashAttribute("error", "No tienes permisos para gestionar talleres.");
+        return "redirect:/portal/admin";
+    }
+
+    List<Ent_Taller> talleres = inscripcionTallerServicio.obtenerTodosTalleres();
+    model.addAttribute("talleres", talleres);
+    return "listaTalleres"; // Vista Thymeleaf para mostrar talleres
+}
+
+@GetMapping("/talleres/{id}/detalles")
+public String verDetallesTaller(@PathVariable Long id, Model model, RedirectAttributes redirectAttributes) {
+    Optional<Ent_Taller> tallerOpt = inscripcionTallerServicio.obtenerTallerPorId(id);
+    if (tallerOpt.isPresent()) {
+        model.addAttribute("taller", tallerOpt.get());
+        return "detallesTaller";
+    } else {
+        model.addAttribute("error", "El taller no fue encontrado.");
+        return "error";
+    }
+}
+
+
+@GetMapping("/talleres/{id}/editar")
+public String mostrarFormularioEditar(@PathVariable Long id, Model model, RedirectAttributes redirectAttributes) {
+    Optional<Ent_Taller> tallerOpt = inscripcionTallerServicio.obtenerTallerPorId(id);
+    if (tallerOpt.isEmpty()) {
+        redirectAttributes.addFlashAttribute("error", "Taller no encontrado.");
+        return "redirect:/portal/admin/talleres";
+    }
+
+    model.addAttribute("taller", tallerOpt.get()); // Objeto con idTaller incluido
+    return "editarTaller"; // Vista para editar talleres
+}
+
+
+@PostMapping("/talleres/{id}/editar")
+public String editarTaller(
+        @PathVariable Long id,
+        @ModelAttribute Ent_Taller tallerActualizado,
+        RedirectAttributes redirectAttributes) {
+    try {
+        inscripcionTallerServicio.actualizarTaller(id, tallerActualizado);
+        redirectAttributes.addFlashAttribute("mensajeExito", "Taller actualizado correctamente.");
+    } catch (Exception e) {
+        redirectAttributes.addFlashAttribute("error", "Error al actualizar el taller: " + e.getMessage());
+    }
+    return "redirect:/portal/admin/talleres";
+}
+
+@PostMapping("/talleres/{id}/eliminar")
+public String eliminarTaller(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+    try {
+        inscripcionTallerServicio.eliminarTaller(id);
+        redirectAttributes.addFlashAttribute("mensajeExito", "Taller eliminado correctamente.");
+    } catch (Exception e) {
+        redirectAttributes.addFlashAttribute("error", "Error al eliminar el taller: " + e.getMessage());
+    }
+    return "redirect:/portal/admin/talleres";
 }
 
      // Manejador de errores para este controlador

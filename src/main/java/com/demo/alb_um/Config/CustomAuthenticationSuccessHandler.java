@@ -30,6 +30,9 @@ public class CustomAuthenticationSuccessHandler implements AuthenticationSuccess
             case "coach":
                 response.sendRedirect("/coach/" + authentication.getName());
                 break;
+            case "manager":
+                response.sendRedirect("/manager/" + authentication.getName());
+                break;
             default:
                 response.sendRedirect("/error");
                 break;

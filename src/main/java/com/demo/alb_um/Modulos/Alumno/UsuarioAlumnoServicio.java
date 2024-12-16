@@ -39,10 +39,10 @@ public class UsuarioAlumnoServicio {
     public Optional<AlumnoDTO> obtenerInformacionAlumnoPorUserName(String userName) {
         return usuarioAlumnoRepositorio.findByUsuario_UserName(userName)
                 .map(this::convertirAAlumnoDTOConActividad);
-    }
+        }
 
-    // Convertir una entidad de alumno en un DTO con la actividad física asociada y la asistencia
-    private AlumnoDTO convertirAAlumnoDTOConActividad(Entidad_Usuario_Alumno alumno) {
+        // Convertir una entidad de alumno en un DTO con la actividad física asociada y la asistencia
+        private AlumnoDTO convertirAAlumnoDTOConActividad(Entidad_Usuario_Alumno alumno) {
         Long idUsuarioAlumno = alumno.getIdUsuarioAlumno();
         String nombreCompleto = alumno.getUsuario().getNombre() + " " + alumno.getUsuario().getApellido();
         String facultad = alumno.getFacultad();
@@ -137,8 +137,8 @@ public class UsuarioAlumnoServicio {
         return new TallerInscripcionDTO(
                 inscripcion.getTaller().getNombre(),
                 inscripcion.getTaller().getDescripcion(),
-                inscripcion.getTaller().getFecha().toLocalDate(),
-                inscripcion.getTaller().getHora().toLocalTime(),
+                inscripcion.getTaller().getFecha(),
+                inscripcion.getTaller().getHora(),
                 inscripcion.getEstadoAsistencia()
         );
     }

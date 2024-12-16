@@ -19,7 +19,6 @@ public class TallerDTO {
     private EstadoTaller estado;
     private Integer tiempoTranscurrido;
     private boolean puedeTomarLista;
-
     private boolean puedeRegistrarLlegada;
     private LocalDateTime fechaHoraCompleta;
     private LocalDateTime inicioRegistroLlegada;

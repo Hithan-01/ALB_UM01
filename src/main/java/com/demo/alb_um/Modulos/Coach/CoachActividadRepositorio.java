@@ -8,4 +8,8 @@ import java.util.List;
 @Repository
 public interface CoachActividadRepositorio extends JpaRepository<Ent_CoachActividad, CoachActividadId> {
     List<Ent_CoachActividad> findByUsuario_UserName(String userName);
+
+
+
+    List<Ent_CoachActividad> findByUsuario_Rol(String rol);
 }

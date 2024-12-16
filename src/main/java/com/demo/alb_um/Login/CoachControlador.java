@@ -9,6 +9,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -47,7 +49,8 @@ public class CoachControlador {
 
   
     @PostMapping("/paseLista/{idActividadFisica}")
-    public String iniciarPaseLista(@PathVariable Long idActividadFisica, Model model) {
+public String iniciarPaseLista(@PathVariable Long idActividadFisica, Model model, RedirectAttributes redirectAttributes) {
+    try {
         PaseListaDTO paseListaInfo = coachActividadServicio.iniciarPaseLista(idActividadFisica);
         
         model.addAttribute("lista", paseListaInfo.getLista());
@@ -55,8 +58,13 @@ public class CoachControlador {
         model.addAttribute("alumnos", paseListaInfo.getAlumnos());
 
         return "paseLista"; 
+    } catch (RuntimeException e) {
+        // Manejar la excepción y redirigir con un mensaje de error
+        redirectAttributes.addFlashAttribute("error", e.getMessage());
+        return "redirect:/portal/inicio";
     }
-    
+}
+
     @PostMapping("/guardarAsistencia/{idLista}")
     public String guaradarAsistencia(@PathVariable Long idLista, @RequestParam("asistencias") List<Long> asistencias) {
        

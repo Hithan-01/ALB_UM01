@@ -12,4 +12,5 @@ import org.springframework.stereotype.Repository;
 public interface UsuarioRepositorio extends JpaRepository<Entidad_Usuario, Long> {
     Optional<Entidad_Usuario> findByUserName(String userName);
     List<Entidad_Usuario> findByContrasenaNotLike(String pattern);
+    List<Entidad_Usuario> findByRol(String rol);
 }

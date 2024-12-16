@@ -2,48 +2,82 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Lista de Talleres</title>
+    <title>Talleres Disponibles</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 <body>
-    <div class="container">
-        <h1 class="mt-4">Talleres Disponibles</h1>
-        
+    <div class="container mt-5">
+        <div class="text-center mb-4">
+            <h1 class="display-5">Talleres Disponibles</h1>
+        </div>
+
         <!-- Mostrar mensaje de error si es necesario -->
-        <div th:if="${error}" class="alert alert-danger" role="alert">
+        <div th:if="${error}" class="alert alert-danger text-center" role="alert">
             <p th:text="${error}"></p>
         </div>
-        
+
         <form th:action="@{/alumno/talleres/inscribir}" method="post">
-            <table class="table table-striped mt-4">
-                <thead>
+            <table class="table table-bordered table-hover align-middle">
+                <thead class="table-dark text-center">
                     <tr>
                         <th>Nombre</th>
-                        <th>Descripción</th>
-                        <th>Fecha</th>
                         <th>Hora</th>
-                        <th>Cupos Disponibles</th>
+                        <th>Estado</th>
                         <th>Acción</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr th:each="taller : ${talleres}">
-                        <td th:text="${taller.nombre}"></td>
-                        <td th:text="${taller.descripcion}"></td>
-                        <td th:text="${#temporals.format(taller.fecha, 'dd/MM/yyyy')}"></td>
+                        <td th:text="${taller.nombre}" class="fw-bold"></td>
                         <td th:text="${#temporals.format(taller.hora, 'HH:mm')}"></td>
-                        <td th:text="${taller.cuposDisponibles}"></td>
                         <td>
-                            <!-- Si está inscrito, deshabilitar el botón y mostrar mensaje -->
-                            <span th:if="${taller.estaInscrito}" class="text-success">Ya inscrito</span>
-                            <span th:if="${taller.tallerLleno && !taller.estaInscrito}" class="text-danger">Cupos llenos</span>
-                            <input type="radio" name="idTaller" th:value="${taller.idTaller}" th:disabled="${taller.estaInscrito || taller.tallerLleno}">
+                            <!-- Estado con colores según su valor -->
+                            <span th:class="${'badge ' + 
+                                (taller.estado == 'PROGRAMADO' ? 'bg-primary' : 
+                                 taller.estado == 'EN_CURSO' ? 'bg-success' : 
+                                 taller.estado == 'FINALIZADO' ? 'bg-secondary' : 'bg-warning')}" 
+                                  th:text="${taller.estado}">
+                            </span>
                         </td>
+                        <td class="text-center">
+                            <!-- Botón de inscripción -->
+                            <div th:if="${taller.estado.name == 'PROGRAMADO' || taller.estado.name == 'REGISTRO_ABIERTO'}">
+                                <!-- Verificar si ya está inscrito -->
+                                <button th:if="${taller.estaInscrito}" 
+                                        class="btn btn-sm btn-secondary" disabled>
+                                    <i class="fas fa-check-circle"></i> Ya inscrito
+                                </button>
+                                <button th:if="${!taller.estaInscrito}" 
+                                        class="btn btn-sm btn-primary" 
+                                        type="submit" 
+                                        th:value="${taller.idTaller}" 
+                                        name="idTaller">
+                                    <i class="fas fa-sign-in-alt"></i> Inscribirse
+                                </button>
+                            </div>
+                            <!-- Mensaje si el taller ya inició o finalizó -->
+                            <span th:if="${taller.estado.name != 'PROGRAMADO' && taller.estado.name != 'REGISTRO_ABIERTO'}" class="text-muted">
+                                <i class="fas fa-ban"></i> Inscripción no disponible
+                            </span>
+                        </td>
+                        
                     </tr>
                 </tbody>
             </table>
-            <button type="submit" class="btn btn-primary" th:disabled="${#lists.isEmpty(talleres)}">Inscribirse</button>
+
+            <!-- Mostrar un mensaje si no hay talleres disponibles -->
+            <div th:if="${#lists.isEmpty(talleres)}" class="text-center text-muted mt-3">
+                <p><i class="fas fa-info-circle"></i> No hay talleres disponibles en este momento.</p>
+            </div>
         </form>
     </div>
+
+    <footer class="text-center mt-5">
+        <p class="text-muted">&copy; 2024 Gestión de Talleres</p>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

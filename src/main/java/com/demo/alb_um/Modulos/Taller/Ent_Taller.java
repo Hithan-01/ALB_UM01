@@ -3,7 +3,9 @@ package com.demo.alb_um.Modulos.Taller;
 import jakarta.persistence.*;
 import java.util.Set;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.Duration;
+import java.time.LocalDate;
 
 import com.demo.alb_um.Modulos.Inscripcion_Taller.Ent_InscripcionTaller;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
@@ -24,10 +26,11 @@ public class Ent_Taller {
     private String descripcion;
 
     @Column(name = "fecha")
-    private java.sql.Date fecha;
+    private LocalDate fecha;
+
 
     @Column(name = "hora")
-    private java.sql.Time hora;
+    private LocalTime hora;
 
     @Column(name = "duracion")
     private Integer duracion;
@@ -45,6 +48,9 @@ public class Ent_Taller {
     @Column(name = "tiempo_transcurrido")
     private Integer tiempoTranscurrido = 0;
 
+    @Column(name = "hora_finalizacion")
+    private LocalDateTime horaFinalizacion;
+
     @OneToMany(mappedBy = "taller", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonManagedReference
     private Set<Ent_InscripcionTaller> inscripciones;
@@ -53,7 +59,8 @@ public class Ent_Taller {
         PROGRAMADO,        // Taller aún no inicia y no está en período de registro
         REGISTRO_ABIERTO,  // 10 minutos antes del inicio, se permite registro
         EN_CURSO,         // Taller en progreso
-        FINALIZADO        // Taller terminado
+        FINALIZADO,
+        CERRADO        // Taller terminado
     }
 
     // Constructor por defecto
@@ -63,8 +70,8 @@ public class Ent_Taller {
     }
 
     // Constructor completo
-    public Ent_Taller(String nombre, String descripcion, java.sql.Date fecha, 
-                      java.sql.Time hora, Integer duracion, Integer cupos) {
+    public Ent_Taller(String nombre, String descripcion, LocalDate fecha, 
+                LocalTime hora, Integer duracion, Integer cupos) {
         this.nombre = nombre;
         this.descripcion = descripcion;
         this.fecha = fecha;
@@ -79,7 +86,7 @@ public class Ent_Taller {
     // Métodos auxiliares para manejo de tiempo
     @Transient
     public LocalDateTime getFechaHoraInicio() {
-        return LocalDateTime.of(this.fecha.toLocalDate(), this.hora.toLocalTime());
+        return LocalDateTime.of(this.fecha, this.hora);
     }
 
     @Transient
@@ -104,6 +111,19 @@ public class Ent_Taller {
         return !horaLlegada.isAfter(getFinRegistroValido());
     }
 
+    @Transient
+    public LocalDateTime getLimiteRegistroSalida() {
+        if (horaFinalizacion != null) {
+            return horaFinalizacion.plusHours(1); // Ventana de 1 hora después de la finalización
+        }
+        return null;
+    }
+
+    @Transient
+    public boolean puedeRegistrarSalida() {
+        LocalDateTime ahora = LocalDateTime.now();
+        return estado == EstadoTaller.FINALIZADO && ahora.isBefore(getLimiteRegistroSalida());
+    }
     // Método para actualizar el estado basado en el tiempo actual
     public void actualizarEstado() {
         LocalDateTime ahora = LocalDateTime.now();
@@ -146,19 +166,19 @@ public class Ent_Taller {
         this.descripcion = descripcion;
     }
 
-    public java.sql.Date getFecha() {
+    public LocalDate getFecha() {
         return fecha;
     }
 
-    public void setFecha(java.sql.Date fecha) {
+    public void setFecha(LocalDate fecha) {
         this.fecha = fecha;
     }
 
-    public java.sql.Time getHora() {
+    public LocalTime getHora() {
         return hora;
     }
 
-    public void setHora(java.sql.Time hora) {
+    public void setHora(LocalTime hora) {
         this.hora = hora;
     }
 
@@ -208,6 +228,14 @@ public class Ent_Taller {
 
     public void setInscripciones(Set<Ent_InscripcionTaller> inscripciones) {
         this.inscripciones = inscripciones;
+    }
+
+    public LocalDateTime getHoraFinalizacion() {
+        return horaFinalizacion;
+    }
+    
+    public void setHoraFinalizacion(LocalDateTime horaFinalizacion) {
+        this.horaFinalizacion = horaFinalizacion;
     }
 
     // Métodos de utilidad

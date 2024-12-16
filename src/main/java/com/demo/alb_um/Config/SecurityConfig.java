@@ -18,6 +18,7 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())  // Deshabilitar CSRF temporalmente
             .authorizeHttpRequests(authorize -> authorize
                 .requestMatchers("/login", "/resources/**").permitAll()
+                .requestMatchers("/portal/manager/**").hasRole("MANAGER")
                 .requestMatchers("/portal/admin/**").hasRole("ADMIN")  // Permitir acceso a rutas de admin
                 .requestMatchers("/portal/inicio").authenticated()
                 .anyRequest().authenticated()

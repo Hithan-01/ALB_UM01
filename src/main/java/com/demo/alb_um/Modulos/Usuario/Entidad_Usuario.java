@@ -4,6 +4,8 @@ import com.demo.alb_um.Modulos.Alumno.Entidad_Usuario_Alumno;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.demo.alb_um.Modulos.Coach.Ent_CoachActividad;
 import jakarta.persistence.*;
+
+import java.time.LocalDate;
 import java.util.Set;
 
 @Entity
@@ -38,6 +40,9 @@ public class Entidad_Usuario {
 
     @Column(name = "genero", length = 1)
     private String genero;  // 'M' o 'F'
+
+    @Column(name = "fecha_nacimiento")
+    private LocalDate fechaNacimiento;
 
     @OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
@@ -146,4 +151,13 @@ public class Entidad_Usuario {
     public void setGenero(String genero) {
         this.genero = genero;
     }
+
+    public LocalDate getFecha_nacimiento() {
+        return fechaNacimiento;
+    }
+
+    public void setFecha_nacimienti(LocalDate fechaNacimiento) {
+        this.fechaNacimiento = fechaNacimiento;
+    }
+
 }

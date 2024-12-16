@@ -10,25 +10,31 @@ import com.demo.alb_um.Modulos.Admn.UsuarioAdminServicio;
 import com.demo.alb_um.Modulos.Alumno.UsuarioAlumnoServicio;
 import com.demo.alb_um.Modulos.Coach.CoachActividadServicio;
 import com.demo.alb_um.Modulos.Horario_servicio.HorarioServicioServicio;
+import com.demo.alb_um.Modulos.Manager.ManagerServicio;
 
 @Controller
 @RequestMapping("/portal")
 public class PortalControlador {
 
-  private final CoachActividadServicio coachActividadServicio;
+    private final CoachActividadServicio coachActividadServicio;
     private final UsuarioAlumnoServicio usuarioAlumnoServicio;
     private final UsuarioAdminServicio usuarioAdminServicio;
     private final Servicios_Controllers serviciosControllers;
+    private final ManagerServicio managerServicio;
+
     
     @Autowired
     public PortalControlador(CoachActividadServicio coachActividadServicio, 
                              UsuarioAlumnoServicio usuarioAlumnoServicio, 
                              UsuarioAdminServicio usuarioAdminServicio, 
-                             HorarioServicioServicio horarioServicio, Servicios_Controllers serviciosControllers) {
+                             HorarioServicioServicio horarioServicio, 
+                             Servicios_Controllers serviciosControllers,
+                             ManagerServicio managerServicio) {
         this.coachActividadServicio = coachActividadServicio;
         this.usuarioAlumnoServicio = usuarioAlumnoServicio;
         this.usuarioAdminServicio = usuarioAdminServicio;
-        this.serviciosControllers = serviciosControllers;// Inyectamos el servicio de asistencia
+        this.serviciosControllers = serviciosControllers;
+        this.managerServicio = managerServicio;
        
     }
 
@@ -53,6 +59,8 @@ public class PortalControlador {
                 return serviciosControllers.cargarVistaAlumno(userName, usuarioAlumnoServicio, model);
             case "ROLE_ADMIN":
                 return serviciosControllers.cargarVistaAdmin(userName, usuarioAdminServicio, model);
+                case "ROLE_MANAGER":
+                return serviciosControllers.cargarVistaManager(userName, managerServicio, model);
             default:
                 return "error"; // Manejar roles inesperados
         }

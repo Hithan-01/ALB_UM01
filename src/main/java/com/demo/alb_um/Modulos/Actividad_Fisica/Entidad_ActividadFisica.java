@@ -31,6 +31,9 @@ public class Entidad_ActividadFisica {
     @Column(name = "dia_semana", length = 15)
     private String diaSemana;
 
+    @Column(name = "identificador_grupo", length = 10)
+    private String identificadorGrupo; // Nueva columna
+
     @OneToMany(mappedBy = "actividadFisica", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonManagedReference
     private Set<Entidad_Lista> listas;
@@ -41,7 +44,7 @@ public class Entidad_ActividadFisica {
 
     @OneToMany(mappedBy = "actividadFisica", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonManagedReference
-private Set<Ent_AlumnoActividad> alumnoActividades;
+    private Set<Ent_AlumnoActividad> alumnoActividades;
 
     // Getters y Setters
 
@@ -116,5 +119,11 @@ private Set<Ent_AlumnoActividad> alumnoActividades;
     public void setAlumnoActividades(Set<Ent_AlumnoActividad> alumnoActividades) {
         this.alumnoActividades = alumnoActividades;
     }
+    public String getIdentificadorGrupo() {
+        return identificadorGrupo;
+    }
 
+    public void setIdentificadorGrupo(String identificadorGrupo) {
+        this.identificadorGrupo = identificadorGrupo;
+    }
 }

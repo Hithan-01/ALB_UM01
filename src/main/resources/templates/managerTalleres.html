@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manager - Gestión de Talleres</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <!-- Navbar -->
+    <nav>
+        <ul>
+            <li><a href="/portal/manager/inicio">Inicio</a></li>
+            <li><a href="/portal/manager/talleres">Gestionar Talleres</a></li>
+            <li><a href="/portal/manager/usuarios">Gestionar Usuarios</a></li>
+            <li><a href="/portal/manager/estadisticas">Estadísticas</a></li>
+            <li><a href="/logout">Cerrar Sesión</a></li>
+        </ul>
+    </nav>
+
+    <!-- Contenido principal -->
+    <main>
+        <h1>Gestión de Talleres</h1>
+        <p th:text="${mensaje}"></p>
+        <button onclick="window.location.href='/portal/manager/talleres/crear'">Crear Taller</button>
+    </main>
+</body>
+</html>

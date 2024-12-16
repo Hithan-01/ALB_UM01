@@ -19,6 +19,17 @@
             </nav>
         </div>
     </header>
+
+    <!-- Mostrar mensajes de error o éxito -->
+    <div class="container mt-3">
+        <div th:if="${error}" class="alert alert-danger" role="alert">
+            <p th:text="${error}"></p>
+        </div>
+        <div th:if="${mensajeExito}" class="alert alert-success" role="alert">
+            <p th:text="${mensajeExito}"></p>
+        </div>
+    </div>
+
     <div class="content-container">
         <div class="coach-info">
             <h2>Información del Coach</h2>
@@ -33,6 +44,7 @@
                 </tr>
             </table>
         </div>
+
         <div class="activities">
             <h2>Actividades Físicas</h2>
             <table class="table table-striped">
@@ -47,14 +59,12 @@
                                 Ver Alumnos
                             </a>
                             
-            
                             <form th:action="@{/portal/coach/paseLista/{idActividadFisica}(idActividadFisica=${actividad.idActividadFisica})}" method="post">
                                 <button class="btn btn-success" type="submit">Pase de Lista</button>
                             </form>
                         </td>
                     </tr>
-                    
-                </tbody>
+                </thead>
             </table>
         </div>
     </div>

@@ -1,20 +1,30 @@
 package com.demo.alb_um.DTOs;
 
-import java.util.List;
-
 public class CoachDTO {
+    private Long idUsuario;
     private String nombreCompleto;
     private String email;
-    private List<ActividadFisicaDTO> actividades;
+    private String username; // Matrícula o username del Coach
+    private String rol; // Nuevo campo para rol
 
     // Constructor
-    public CoachDTO(String nombreCompleto, String email, List<ActividadFisicaDTO> actividades) {
+    public CoachDTO(Long idUsuario, String nombreCompleto, String email, String username, String rol) {
+        this.idUsuario = idUsuario;
         this.nombreCompleto = nombreCompleto;
         this.email = email;
-        this.actividades = actividades;
+        this.username = username;
+        this.rol = rol;
     }
 
     // Getters y Setters
+    public Long getIdUsuario() {
+        return idUsuario;
+    }
+
+    public void setIdUsuario(Long idUsuario) {
+        this.idUsuario = idUsuario;
+    }
+
     public String getNombreCompleto() {
         return nombreCompleto;
     }
@@ -31,11 +41,19 @@ public class CoachDTO {
         this.email = email;
     }
 
-    public List<ActividadFisicaDTO> getActividades() {
-        return actividades;
+    public String getUsername() {
+        return username;
     }
 
-    public void setActividades(List<ActividadFisicaDTO> actividades) {
-        this.actividades = actividades;
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public String getRol() {
+        return rol;
+    }
+
+    public void setRol(String rol) {
+        this.rol = rol;
     }
 }

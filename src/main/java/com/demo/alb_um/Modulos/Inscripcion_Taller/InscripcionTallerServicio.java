@@ -38,6 +38,8 @@ public class InscripcionTallerServicio {
     @Autowired
     private UsuarioAlumnoRepositorio AlumnoRepositorio;
 
+
+
    // Método para verificar usando el username (String)
 public boolean estaInscritoEnTaller(String username, Long idTaller) {
     return RepositorioInscripcionTaller.existsByUsuarioAlumno_Usuario_UserNameAndTaller_IdTaller(username, idTaller);
@@ -67,8 +69,8 @@ public boolean estaInscritoEnTaller(Long idAlumno, Long idTaller) {
                     taller.getIdTaller(),
                     taller.getNombre(),
                     taller.getDescripcion(),
-                    taller.getFecha().toLocalDate(),
-                    taller.getHora().toLocalTime(),
+                    taller.getFecha(),
+                    taller.getHora(),
                     taller.getDuracion(),
                     taller.getCuposDisponibles(),
                     taller.getEstado(),
@@ -127,64 +129,96 @@ public boolean estaInscritoEnTaller(Long idAlumno, Long idTaller) {
     public void actualizarEstadosTalleres() {
         LocalDateTime ahora = LocalDateTime.now();
         LocalDate hoy = ahora.toLocalDate();
-        LocalTime horaActual = ahora.toLocalTime();
-        
+    
+        // Obtener talleres del día actual
         List<Ent_Taller> talleresDia = tallerRepository.findByFecha(hoy);
-        
+    
         for (Ent_Taller taller : talleresDia) {
-            LocalTime horaTaller = taller.getHora().toLocalTime();
+            LocalTime horaTaller = taller.getHora();
             LocalDateTime horaInicioTaller = LocalDateTime.of(hoy, horaTaller);
-            LocalDateTime inicioPaseList = horaInicioTaller.minusMinutes(10);
-            
-            // Debug
-            System.out.println("Actualizando estado del taller: " + taller.getNombre());
-            System.out.println("Estado actual: " + taller.getEstado());
-            System.out.println("Hora actual: " + ahora);
-            System.out.println("Hora inicio taller: " + horaInicioTaller);
-            
-            if (taller.getEstado() == EstadoTaller.PROGRAMADO && 
-                ahora.isAfter(inicioPaseList) && 
+            LocalDateTime inicioPaseLista = horaInicioTaller.minusMinutes(10);
+            LocalDateTime horaFinPlanificada = horaInicioTaller.plusMinutes(taller.getDuracion());
+    
+            // Si el taller ya tiene una hora de finalización, usarla; de lo contrario, usar la planificada
+            LocalDateTime horaFinTaller = (taller.getHoraFinalizacion() != null) 
+                ? taller.getHoraFinalizacion() 
+                : horaFinPlanificada;
+    
+            // El límite para registro de salidas se calcula con base en la hora de finalización real
+            LocalDateTime limiteRegistroSalida = horaFinTaller.plusMinutes(15);
+    
+            // Cambiar de PROGRAMADO a REGISTRO_ABIERTO
+            if (taller.getEstado() == EstadoTaller.PROGRAMADO &&
+                ahora.isAfter(inicioPaseLista) &&
                 ahora.isBefore(horaInicioTaller)) {
-                System.out.println("Cambiando a REGISTRO_ABIERTO");
                 taller.setEstado(EstadoTaller.REGISTRO_ABIERTO);
             }
-            
-            if ((taller.getEstado() == EstadoTaller.REGISTRO_ABIERTO || 
-                 taller.getEstado() == EstadoTaller.PROGRAMADO) && 
+    
+            // Cambiar de REGISTRO_ABIERTO o PROGRAMADO a EN_CURSO
+            if ((taller.getEstado() == EstadoTaller.REGISTRO_ABIERTO || taller.getEstado() == EstadoTaller.PROGRAMADO) &&
                 ahora.isAfter(horaInicioTaller)) {
-                System.out.println("Cambiando a EN_CURSO");
                 taller.setEstado(EstadoTaller.EN_CURSO);
             }
-            
+    
+            // Actualizar tiempo transcurrido mientras está EN_CURSO
             if (taller.getEstado() == EstadoTaller.EN_CURSO) {
-                long minutosTranscurridos = Duration.between(horaTaller, horaActual).toMinutes();
+                long minutosTranscurridos = Duration.between(horaInicioTaller, ahora).toMinutes();
                 taller.setTiempoTranscurrido((int) minutosTranscurridos);
+    
+                // Cambiar de EN_CURSO a FINALIZADO si el tiempo ha terminado
+                if (ahora.isAfter(horaFinPlanificada)) {
+                    taller.setEstado(EstadoTaller.FINALIZADO);
+    
+                    // Registrar la hora de finalización y guardar inmediatamente
+                    taller.setHoraFinalizacion(ahora); 
+                    tallerRepository.saveAndFlush(taller); // Forzar la actualización inmediata
+                }
             }
-            
-            System.out.println("Estado final: " + taller.getEstado());
+    
+            // Cambiar de FINALIZADO a CERRADO si el límite de tiempo para registrar salidas ha expirado
+            if (taller.getEstado() == EstadoTaller.FINALIZADO &&
+                ahora.isAfter(limiteRegistroSalida)) {
+                taller.setEstado(EstadoTaller.CERRADO);
+            }
         }
-        
+    
+        // Guardar todos los cambios pendientes
         tallerRepository.saveAll(talleresDia);
     }
+    
 
     @Transactional
     public void finalizarTaller(Long idTaller) {
+        // Buscar el taller por ID
         Ent_Taller taller = tallerRepository.findById(idTaller)
             .orElseThrow(() -> new RuntimeException("Taller no encontrado"));
             
+        // Verificar que el estado sea EN_CURSO antes de finalizarlo
         if (taller.getEstado() == EstadoTaller.EN_CURSO) {
             taller.setEstado(EstadoTaller.FINALIZADO);
+    
+            // Registrar la hora de finalización con la hora actual
+            LocalDateTime horaActual = LocalDateTime.now();
+            taller.setHoraFinalizacion(horaActual);
+    
+            // Guardar cambios en la base de datos
             tallerRepository.save(taller);
+    
+            // Debugging
+            System.out.println("Taller finalizado: " + taller.getNombre());
+            System.out.println("Hora de finalización registrada: " + horaActual);
+        } else {
+            throw new RuntimeException("El taller no está en curso, no se puede finalizar.");
         }
     }
-
+    
     private TallerDTO convertToDTO(Ent_Taller taller) {
         return new TallerDTO(
             taller.getIdTaller(),
             taller.getNombre(),
             taller.getDescripcion(),
-            taller.getFecha().toLocalDate(),
-            taller.getHora().toLocalTime(),
+            taller.getFecha(),
+            taller.getHora(),
             taller.getDuracion(),
             taller.getCuposDisponibles(),
             taller.getEstado(),
@@ -234,8 +268,8 @@ public boolean estaInscritoEnTaller(Long idAlumno, Long idTaller) {
             .map(taller -> {
                 TallerDTO dto = convertToDTO(taller);
                 LocalDateTime horaInicio = LocalDateTime.of(
-                    taller.getFecha().toLocalDate(),
-                    taller.getHora().toLocalTime()
+                    taller.getFecha(),
+                    taller.getHora()
                 );
                 LocalDateTime ahora = LocalDateTime.now();
                 LocalDateTime inicioPaseList = horaInicio.minusMinutes(10);
@@ -257,8 +291,8 @@ public boolean estaInscritoEnTaller(Long idAlumno, Long idTaller) {
             .map(inscripcion -> new TallerInscripcionDTO(
                 inscripcion.getTaller().getNombre(),
                 inscripcion.getTaller().getDescripcion(),
-                inscripcion.getTaller().getFecha().toLocalDate(),
-                inscripcion.getTaller().getHora().toLocalTime(),
+                inscripcion.getTaller().getFecha(),
+                inscripcion.getTaller().getHora(),
                 inscripcion.getEstadoAsistencia()
             ))
             .collect(Collectors.toList());
@@ -307,7 +341,7 @@ public boolean estaInscritoEnTaller(Long idAlumno, Long idTaller) {
         Ent_Taller taller = inscripcion.getTaller();
 
         if (inscripcion.getHoraLlegada() == null) {
-            LocalTime horaInicio = taller.getHora().toLocalTime(); // Convertir java.sql.Time a LocalTime
+            LocalTime horaInicio = taller.getHora(); // Convertir java.sql.Time a LocalTime
             if (ahora.isAfter(horaInicio.plusMinutes(10))) {
                 inscripcion.setHoraLlegada(ahora);
                 inscripcion.setEstadoAsistencia("RETARDO");
@@ -380,8 +414,8 @@ public boolean estaInscritoEnTaller(Long idAlumno, Long idTaller) {
                 return response;
             }
     
-            LocalTime horaTaller = taller.getHora().toLocalTime();
-            LocalDateTime horaInicioTaller = LocalDateTime.of(taller.getFecha().toLocalDate(), horaTaller);
+            LocalTime horaTaller = taller.getHora();
+            LocalDateTime horaInicioTaller = LocalDateTime.of(taller.getFecha(), horaTaller);
             LocalDateTime inicioPaseList = horaInicioTaller.minusMinutes(10);
             LocalDateTime finPaseList = horaInicioTaller.plusMinutes(10);
             LocalDateTime ahoraCompleto = LocalDateTime.now();
@@ -463,51 +497,147 @@ public boolean estaInscritoEnTaller(Long idAlumno, Long idTaller) {
         LocalTime ahora = LocalTime.now();
     
         try {
-            // Buscar inscripción usando la nueva query combinada para aceptar tanto username como tagCredencial
+            // Log inicial
+            System.out.println("Intentando registrar salida para tallerId: " + tallerId + " con identificador: " + identificador);
+    
             Optional<Ent_InscripcionTaller> inscripcionOpt = 
                 RepositorioInscripcionTaller.findByTallerAndIdentificador(tallerId, identificador);
     
             if (!inscripcionOpt.isPresent()) {
+                System.out.println("No se encontró inscripción para el identificador proporcionado.");
                 response.put("error", true);
-                response.put("message", "Alumno no inscrito en este taller");
+                response.put("message", "Alumno no inscrito en este taller.");
                 return response;
             }
     
             Ent_InscripcionTaller inscripcion = inscripcionOpt.get();
     
-            // Verificar si tiene hora de llegada registrada
             if (inscripcion.getHoraLlegada() == null) {
+                System.out.println("Hora de llegada no registrada para el alumno.");
                 response.put("error", true);
                 response.put("message", "No se ha registrado una hora de llegada.");
                 return response;
             }
     
-            // Registrar la hora de salida incluso si la hora de llegada es inválida
             inscripcion.setHoraSalida(ahora);
     
-            // Verificar si la hora de llegada es inválida
             if ("LLEGADA_INVALIDA".equals(inscripcion.getEstadoAsistencia())) {
                 inscripcion.setEstadoAsistencia("LLEGADA_INVALIDA");
+                System.out.println("La hora de llegada fue inválida. Registrando salida.");
                 response.put("warning", true);
                 response.put("message", "La hora de llegada fue inválida, pero la hora de salida se ha registrado correctamente.");
             } else {
                 inscripcion.setEstadoAsistencia("ASISTIO");
                 inscripcion.setVerificacion(true);
+                System.out.println("Salida registrada correctamente.");
                 response.put("message", "Asistencia registrada correctamente.");
             }
     
-            // Guardar la inscripción
             RepositorioInscripcionTaller.save(inscripcion);
             response.put("error", false);
             response.put("horaSalida", ahora.toString());
     
         } catch (Exception e) {
+            System.err.println("Error al registrar la salida: " + e.getMessage());
+            e.printStackTrace();
             response.put("error", true);
             response.put("message", "Error al registrar la salida: " + e.getMessage());
-            e.printStackTrace();
         }
     
         return response;
     }
+    
+    public void registrarTaller(Ent_Taller taller) {
+        // Validaciones
+        if (taller.getNombre() == null || taller.getNombre().trim().isEmpty()) {
+            throw new IllegalArgumentException("El nombre del taller es obligatorio.");
+        }
+        if (taller.getFecha() == null || taller.getHora() == null) {
+            throw new IllegalArgumentException("La fecha y la hora son obligatorias.");
+        }
+        if (taller.getCupos() == null || taller.getCupos() <= 0) {
+            throw new IllegalArgumentException("Los cupos deben ser mayores a 0.");
+        }
+        if (taller.getDuracion() == null || taller.getDuracion() <= 0) {
+            throw new IllegalArgumentException("La duración del taller debe ser mayor a 0 minutos.");
+        }
+    
+        // Validar que la fecha y hora sean futuras
+        LocalDateTime fechaHoraActual = LocalDateTime.now();
+        LocalDateTime fechaHoraTaller = LocalDateTime.of(taller.getFecha(), taller.getHora());
+        if (fechaHoraTaller.isBefore(fechaHoraActual)) {
+            throw new IllegalArgumentException("La fecha y hora del taller deben ser futuras.");
+        }
+    
+        // Configurar valores iniciales
+        taller.setCuposDisponibles(taller.getCupos()); // Los cupos disponibles deben ser iguales a los cupos totales al inicio
+        taller.setEstado(Ent_Taller.EstadoTaller.PROGRAMADO); // Estado inicial: PROGRAMADO
+        if (taller.getDescripcion() == null || taller.getDescripcion().trim().isEmpty()) {
+            taller.setDescripcion("Descripción no proporcionada."); // Descripción por defecto si no se especifica
+        }
+    
+        // Guardar taller en el repositorio
+        tallerRepository.save(taller);
+    }
+    
+
+    public Optional<Ent_Taller> obtenerTallerPorId(Long id) {
+        return tallerRepository.findById(id);
+    }
+    
+    public void actualizarTaller(Long id, Ent_Taller tallerActualizado) {
+        // Buscar el taller existente
+        Ent_Taller taller = tallerRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Taller no encontrado."));
+    
+        // Validar nombre
+        if (tallerActualizado.getNombre() == null || tallerActualizado.getNombre().trim().isEmpty()) {
+            throw new IllegalArgumentException("El nombre del taller no puede estar vacío.");
+        }
+    
+        // Validar fecha y hora
+        LocalDateTime fechaHoraActual = LocalDateTime.now();
+        LocalDateTime fechaHoraTaller = LocalDateTime.of(tallerActualizado.getFecha(), tallerActualizado.getHora());
+        if (fechaHoraTaller.isBefore(fechaHoraActual)) {
+            throw new IllegalArgumentException("La fecha y hora del taller deben ser futuras.");
+        }
+    
+        // Validar cupos
+        int cuposOcupados = taller.getCupos() - taller.getCuposDisponibles();
+        if (tallerActualizado.getCupos() < cuposOcupados) {
+            throw new IllegalArgumentException("Los cupos no pueden ser menores que los cupos ocupados actuales (" + cuposOcupados + ").");
+        }
+    
+        // Validar duración
+        if (tallerActualizado.getDuracion() <= 0) {
+            throw new IllegalArgumentException("La duración del taller debe ser mayor que 0.");
+        }
+    
+        // Actualizar los datos del taller
+        taller.setNombre(tallerActualizado.getNombre());
+        taller.setDescripcion(tallerActualizado.getDescripcion());
+        taller.setFecha(tallerActualizado.getFecha());
+        taller.setHora(tallerActualizado.getHora());
+        taller.setDuracion(tallerActualizado.getDuracion());
+        taller.setCupos(tallerActualizado.getCupos());
+    
+        // Calcular cupos disponibles
+        int nuevosCuposDisponibles = Math.max(0, tallerActualizado.getCupos() - cuposOcupados);
+        taller.setCuposDisponibles(nuevosCuposDisponibles);
+    
+        // Guardar los cambios
+        tallerRepository.save(taller);
+    }
+    
+    
+    public void eliminarTaller(Long id) {
+        tallerRepository.deleteById(id);
+    }
+    
+
+    public List<Ent_Taller> obtenerTodosTalleres() {
+        return tallerRepository.findAll();
+    }
+    
     
 }

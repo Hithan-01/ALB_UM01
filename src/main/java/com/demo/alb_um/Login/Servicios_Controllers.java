@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.ui.Model;
 import com.demo.alb_um.DTOs.CoachDTO;
+import com.demo.alb_um.DTOs.ManagerDTO;
 import com.demo.alb_um.DTOs.TallerDTO;
 import com.demo.alb_um.DTOs.AlumnoDTO;
 import com.demo.alb_um.DTOs.AdminDTO;
@@ -16,6 +17,7 @@ import com.demo.alb_um.DTOs.CitaDTO;
 import com.demo.alb_um.DTOs.TallerInscripcionDTO;
 import com.demo.alb_um.Modulos.Coach.CoachActividadServicio;
 import com.demo.alb_um.Modulos.Inscripcion_Taller.InscripcionTallerServicio;
+import com.demo.alb_um.Modulos.Manager.ManagerServicio;
 import com.demo.alb_um.Modulos.Taller.Ent_Taller.EstadoTaller;
 import com.demo.alb_um.Modulos.Alumno.UsuarioAlumnoServicio;
 import com.demo.alb_um.Modulos.Antropometria.AntropometriaServicio;
@@ -26,15 +28,7 @@ import com.demo.alb_um.Modulos.Admn.UsuarioAdminServicio;
 public class Servicios_Controllers {
 
     
-    public String cargarVistaCoach(String userName, CoachActividadServicio coachActividadServicio, Model model) {
-        Optional<CoachDTO> coachOpt = coachActividadServicio.obtenerCoachPorUserName(userName);
-        if (coachOpt.isPresent()) {
-            model.addAttribute("coach", coachOpt.get());
-            return "coach"; 
-        }
-        return "error"; 
-    }
-
+   
     
     private final InscripcionTallerServicio inscripcionTallerServicio;
 
@@ -48,6 +42,14 @@ public Servicios_Controllers(InscripcionTallerServicio inscripcionTallerServicio
     
 
    
+public String cargarVistaCoach(String userName, CoachActividadServicio coachActividadServicio, Model model) {
+    Optional<CoachDTO> coachOpt = coachActividadServicio.obtenerCoachPorUserName(userName);
+    if (coachOpt.isPresent()) {
+        model.addAttribute("coach", coachOpt.get());
+        return "coach"; 
+    }
+    return "error"; 
+}
 
 
 public String cargarVistaAlumno(
@@ -147,4 +149,20 @@ public String cargarVistaAlumno(
         }
         return "error";
     }
+
+
+    public String cargarVistaManager(String userName, ManagerServicio managerServicio, Model model) {
+        // Obtener información del manager basado en el username
+        ManagerDTO manager = managerServicio.obtenerInformacionManagerPorUserName(userName);
+        
+        if (manager != null) {
+            model.addAttribute("manager", manager); // Añadir información del manager al modelo
+            model.addAttribute("mensaje", "Bienvenido al portal de Manager"); // Mensaje de bienvenida
+            return "managerInicio"; // Renderizar la vista managerInicio
+        }
+
+        model.addAttribute("mensajeError", "No se encontró información para el manager.");
+        return "error"; // Vista de error si el manager no existe
+    }
+    
 }

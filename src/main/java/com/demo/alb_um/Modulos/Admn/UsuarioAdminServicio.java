@@ -123,7 +123,7 @@ public class UsuarioAdminServicio {
         return tallerRepository.findByFechaAndHoraBeforeAndDuracion(hoy, ahora, duracionMinima)
             .stream()
             .filter(taller -> {
-                LocalTime horaFinTaller = taller.getHora().toLocalTime().plusMinutes(taller.getDuracion());
+                LocalTime horaFinTaller = taller.getHora().plusMinutes(taller.getDuracion());
                 return ahora.isAfter(horaFinTaller);
             })
             .map(this::convertToDTO)
@@ -135,8 +135,8 @@ public class UsuarioAdminServicio {
             taller.getIdTaller(),
             taller.getNombre(),
             taller.getDescripcion(),
-            taller.getFecha().toLocalDate(),
-            taller.getHora().toLocalTime(),
+            taller.getFecha(),
+            taller.getHora(),
             taller.getDuracion(),
             taller.getCuposDisponibles(),
             taller.getEstado(),
