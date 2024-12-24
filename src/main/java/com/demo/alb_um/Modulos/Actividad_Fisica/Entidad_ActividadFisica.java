@@ -19,9 +19,6 @@ public class Entidad_ActividadFisica {
     @Column(name = "nombre", length = 30)
     private String nombre;
 
-    @Column(name = "coach_id")
-    private Integer coachId;
-
     @Column(name = "hora")
     private Time hora;
 
@@ -64,13 +61,6 @@ public class Entidad_ActividadFisica {
         this.nombre = nombre;
     }
 
-    public Integer getCoachId() {
-        return coachId;
-    }
-
-    public void setCoachId(Integer coachId) {
-        this.coachId = coachId;
-    }
 
     public Time getHora() {
         return hora;

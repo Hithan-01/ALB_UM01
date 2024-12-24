@@ -10,10 +10,11 @@ public class ActividadFisicaDTO {
     private String diaSemana;
     private Time hora;
     private String identificadorGrupo; // Nueva columna
+    private String nombreCoach;
     private List<AlumnoDTO> alumnos;
 
     // Constructor
-    public ActividadFisicaDTO(Long idActividadFisica, String nombre, String grupo, String diaSemana, Time hora,String identificadorGrupo, List<AlumnoDTO> alumnos) {
+    public ActividadFisicaDTO(Long idActividadFisica, String nombre, String grupo, String diaSemana, Time hora,String identificadorGrupo,String nombreCoach ,List<AlumnoDTO> alumnos) {
         this.idActividadFisica = idActividadFisica;
         this.nombre = nombre;
         this.grupo = grupo;
@@ -21,6 +22,7 @@ public class ActividadFisicaDTO {
         this.hora = hora;
         this.identificadorGrupo = identificadorGrupo;
         this.alumnos = alumnos;
+        this.nombreCoach = nombreCoach;
     }
 
     // Getters y Setters
@@ -71,12 +73,20 @@ public class ActividadFisicaDTO {
     public void setIdentificadorGrupo(String identificadorGrupo) {
         this.identificadorGrupo = identificadorGrupo;
     }
-    
+
     public List<AlumnoDTO> getAlumnos() {
         return alumnos;
     }
 
     public void setAlumnos(List<AlumnoDTO> alumnos) {
         this.alumnos = alumnos;
+    }
+
+    public String getNombreCoach() {
+        return nombreCoach;
+    }
+
+    public void setNombreCoach(String nombreCoach) {
+        this.nombreCoach = nombreCoach;
     }
 }

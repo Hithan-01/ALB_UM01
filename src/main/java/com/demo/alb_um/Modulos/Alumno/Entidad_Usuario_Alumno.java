@@ -10,6 +10,8 @@ import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 import jakarta.persistence.*;
 import java.util.Set;
+
+
 @Entity
 @Table(name = "usuario_alumno")
 public class Entidad_Usuario_Alumno {
@@ -57,6 +59,14 @@ public class Entidad_Usuario_Alumno {
 
 
     // Getters and Setters
+
+    public String getCarrera(){
+        return carrera;
+    }
+
+    public void setCarrera(String carrera){
+        this.carrera= carrera;
+    }
 
     public Long getIdUsuarioAlumno() {
         return idUsuarioAlumno;

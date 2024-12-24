@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Mover Alumno</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+<div class="container mt-5">
+    <h1 class="mb-4">Mover Alumno a Otra Actividad</h1>
+
+    <div class="card mb-3">
+        <div class="card-body">
+            <h5 class="card-title" th:text="${alumno.nombreCompleto}"></h5>
+            <p class="card-text"><strong>Facultad:</strong> <span th:text="${alumno.facultad}"></span></p>
+            <p class="card-text"><strong>Residencia:</strong> <span th:text="${alumno.residencia}"></span></p>
+            <p class="card-text"><strong>Semestre:</strong> <span th:text="${alumno.semestre}"></span></p>
+        </div>
+    </div>
+
+    <form th:action="@{'/portal/manager/mover-alumno/' + ${alumno.idUsuarioAlumno}}" method="post">
+        <label for="idNuevaActividad">Selecciona la nueva actividad:</label>
+        <select name="idNuevaActividad" id="idNuevaActividad" required>
+            <option th:each="actividad : ${actividades}"
+                    th:value="${actividad.idActividadFisica}"
+                    th:text="${actividad.nombre + ' - ' + actividad.grupo + ' (' + actividad.diaSemana + ' ' + actividad.hora + ') - Coach: ' + actividad.nombreCoach}">
+            </option>
+        </select>
+        <button type="submit" class="btn btn-primary">Mover Alumno</button>
+    </form>
+    
+    
+    
+</div>
+</body>
+</html>

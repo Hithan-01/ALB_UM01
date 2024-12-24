@@ -12,6 +12,7 @@ import com.demo.alb_um.DTOs.CoachDTO;
 import com.demo.alb_um.DTOs.ManagerDTO;
 import com.demo.alb_um.DTOs.TallerDTO;
 import com.demo.alb_um.DTOs.AlumnoDTO;
+import com.demo.alb_um.DTOs.ActividadFisicaDTO;
 import com.demo.alb_um.DTOs.AdminDTO;
 import com.demo.alb_um.DTOs.CitaDTO;
 import com.demo.alb_um.DTOs.TallerInscripcionDTO;
@@ -39,17 +40,23 @@ public Servicios_Controllers(InscripcionTallerServicio inscripcionTallerServicio
     this.antropometriaServicio = antropometriaServicio;
 }
 
-    
+    @Autowired CoachActividadServicio coachActividadServicio;
 
-   
 public String cargarVistaCoach(String userName, CoachActividadServicio coachActividadServicio, Model model) {
     Optional<CoachDTO> coachOpt = coachActividadServicio.obtenerCoachPorUserName(userName);
     if (coachOpt.isPresent()) {
-        model.addAttribute("coach", coachOpt.get());
+        CoachDTO coach = coachOpt.get();
+        model.addAttribute("coach", coach);
+
+        // Obtener actividades asociadas al coach
+        List<ActividadFisicaDTO> actividades = coachActividadServicio.obtenerActividadesPorCoach(coach.getIdUsuario());
+        model.addAttribute("actividades", actividades);
+
         return "coach"; 
     }
     return "error"; 
 }
+
 
 
 public String cargarVistaAlumno(

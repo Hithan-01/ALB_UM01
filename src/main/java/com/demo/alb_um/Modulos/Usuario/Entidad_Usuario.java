@@ -156,7 +156,7 @@ public class Entidad_Usuario {
         return fechaNacimiento;
     }
 
-    public void setFecha_nacimienti(LocalDate fechaNacimiento) {
+    public void setFecha_nacimiento(LocalDate fechaNacimiento) {
         this.fechaNacimiento = fechaNacimiento;
     }
 

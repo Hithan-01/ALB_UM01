@@ -1,29 +1,23 @@
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org">
 <head>
     <title>Crear Actividad</title>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
-          integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
 </head>
 <body>
-    <div class="container mt-5">
-        <h1>Crear Actividad Física</h1>
+    <div class="container">
+        <h1 class="mt-5">Crear Actividad Física</h1>
 
-        <!-- Mensajes de error o éxito -->
+        <!-- Mensajes -->
         <div th:if="${mensajeExito}" class="alert alert-success" role="alert" th:text="${mensajeExito}"></div>
         <div th:if="${error}" class="alert alert-danger" role="alert" th:text="${error}"></div>
 
-        <form th:action="@{/portal/manager/crear-actividad}" method="post" onsubmit="return confirmarActividad()">
-            <!-- Nombre -->
+        <!-- Formulario -->
+        <form th:action="@{/portal/manager/crear-actividad}" method="post" class="mt-4">
             <div class="mb-3">
-                <label for="nombre" class="form-label">Nombre de la Actividad</label>
-                <input type="text" class="form-control" id="nombre" name="nombre" required 
-                       pattern="[A-Za-záéíóúÁÉÍÓÚñÑ ]+" title="El nombre solo puede contener letras y espacios.">
+                <label for="nombre" class="form-label">Nombre</label>
+                <input type="text" id="nombre" name="nombre" class="form-control" required>
             </div>
-        
-            <!-- Día de la Semana -->
             <div class="mb-3">
                 <label for="diaSemana" class="form-label">Día de la Semana</label>
                 <select class="form-select" id="diaSemana" name="diaSemana" required>
@@ -32,68 +26,16 @@
                     <option value="Martes-Jueves">Martes-Jueves</option>
                 </select>
             </div>
-
-            <!-- Hora -->
             <div class="mb-3">
                 <label for="hora" class="form-label">Hora (HH:mm)</label>
-                <input type="time" class="form-control" id="hora" name="hora" required>
+                <input type="time" id="hora" name="hora" class="form-control" required>
             </div>
-
-            <!-- Grupo -->
             <div class="mb-3">
                 <label for="grupo" class="form-label">Grupo</label>
-                <input type="text" class="form-control" id="grupo" name="grupo" required 
-                       pattern="[A-Za-z0-9]+" title="El grupo solo puede contener letras y números.">
+                <input type="text" id="grupo" name="grupo" class="form-control" required>
             </div>
-
-            <!-- Selección de Coach -->
-            <div class="mb-3">
-                <label for="coachId" class="form-label">Seleccionar Coach</label>
-                <select class="form-select" id="coachId" name="coachId" required>
-                    <option value="" disabled selected>Seleccione un coach</option>
-                    <option th:each="coach : ${coaches}" 
-                            th:value="${coach.idUsuario}"
-                            th:text="${coach.nombreCompleto + ' (' + coach.username + ')'}">
-                    </option>
-                </select>
-            </div>
-
             <button type="submit" class="btn btn-primary">Crear Actividad</button>
         </form>
     </div>
-
-    <!-- JavaScript para confirmación y validaciones -->
-    <script>
-        function confirmarActividad() {
-            const nombre = document.getElementById('nombre').value.trim();
-            const diaSemana = document.getElementById('diaSemana').value;
-            const hora = document.getElementById('hora').value;
-            const grupo = document.getElementById('grupo').value.trim();
-            const coachSelect = document.getElementById('coachId');
-            const coach = coachSelect.options[coachSelect.selectedIndex].text;
-
-            // Validación básica en JS
-            if (!nombre.match(/^[A-Za-záéíóúÁÉÍÓÚñÑ ]+$/)) {
-                alert("El nombre solo puede contener letras y espacios.");
-                return false;
-            }
-
-            if (!grupo.match(/^[A-Za-z0-9]+$/)) {
-                alert("El grupo solo puede contener letras y números.");
-                return false;
-            }
-
-            // Confirmación antes del envío
-            const confirmacion = `
-            ¿Estás seguro de que quieres crear la actividad con los siguientes datos?\n
-            - Nombre: ${nombre}
-            - Día: ${diaSemana}
-            - Hora: ${hora}
-            - Grupo: ${grupo}
-            - Coach: ${coach}
-            `;
-            return confirm(confirmacion);
-        }
-    </script>
 </body>
 </html>
