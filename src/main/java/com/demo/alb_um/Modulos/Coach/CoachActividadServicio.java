@@ -7,6 +7,8 @@ import com.demo.alb_um.Modulos.Actividad_Fisica.*;
 import com.demo.alb_um.Modulos.Alumno.*;
 
 import com.demo.alb_um.Modulos.Asitencia_Act.*;
+import com.demo.alb_um.Modulos.Carrera.Entidad_carrera;
+import com.demo.alb_um.Modulos.Facultad.Entidad_facultad;
 import com.demo.alb_um.Modulos.Listas.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
@@ -92,50 +94,53 @@ public class CoachActividadServicio {
         }
     }
 
-    
-    private ActividadFisicaDTO convertirAActividadFisicaDTO(Entidad_ActividadFisica actividadFisica) {
-        // Obtener los alumnos asociados a la actividad
-        List<AlumnoDTO> alumnos = actividadFisica.getAlumnoActividades().stream()
-                .map(alumnoActividad -> {
-                    Entidad_Usuario_Alumno usuarioAlumno = alumnoActividad.getUsuarioAlumno();
-                    Entidad_Usuario usuario = usuarioAlumno.getUsuario();
-    
-                    return new AlumnoDTO(
-                            usuarioAlumno.getIdUsuarioAlumno(),
-                            usuario.getNombre() + " " + usuario.getApellido(),
-                            actividadFisica.getNombre(),
-                            null, // Coach no definido en esta relación
-                            actividadFisica.getHora().toString(),
-                            false,
-                            null,
-                            usuarioAlumno.getFacultad(),
-                            usuarioAlumno.getResidencia(),
-                            usuarioAlumno.getSemestre()
-                    );
-                })
-                .collect(Collectors.toList());
-    
-        // Obtener el nombre del coach asociado
-        String nombreCoach = actividadFisica.getCoachActividades().stream()
-                .map(coachActividad -> {
-                    Entidad_Usuario coachUsuario = coachActividad.getUsuario();
-                    return coachUsuario.getNombre() + " " + coachUsuario.getApellido();
-                })
-                .findFirst() // Asumimos un único coach asociado
-                .orElse("Sin Coach");
-    
-        // Crear y devolver el DTO de Actividad Física
-        return new ActividadFisicaDTO(
-                actividadFisica.getIdActividadFisica(),
-                actividadFisica.getNombre(),
-                actividadFisica.getGrupo(),
-                actividadFisica.getDiaSemana(),
-                actividadFisica.getHora(),
-                actividadFisica.getIdentificadorGrupo(),
-                nombreCoach,
-                alumnos
-        );
-    }
+private ActividadFisicaDTO convertirAActividadFisicaDTO(Entidad_ActividadFisica actividadFisica) {
+    // Obtener los alumnos asociados a la actividad
+    List<AlumnoDTO> alumnos = actividadFisica.getAlumnoActividades().stream()
+            .map(alumnoActividad -> {
+                Entidad_Usuario_Alumno usuarioAlumno = alumnoActividad.getUsuarioAlumno();
+                Entidad_Usuario usuario = usuarioAlumno.getUsuario();
+                Entidad_carrera carrera = usuarioAlumno.getCarrera(); // Obtener la carrera asociada
+                Entidad_facultad facultad = carrera != null ? carrera.getFacultad() : null; // Obtener la facultad desde la carrera
+
+                return new AlumnoDTO(
+                        usuarioAlumno.getIdUsuarioAlumno(),
+                        usuario.getNombre() + " " + usuario.getApellido(),
+                        actividadFisica.getNombre(),
+                        null, // Coach no definido en esta relación
+                        actividadFisica.getHora() != null ? actividadFisica.getHora().toString() : "Sin horario",
+                        false, // yaAsistio (por defecto, actualiza si es necesario)
+                        null, // Fecha de registro (por defecto)
+                        facultad != null ? facultad.getNombre() : "Sin Facultad",
+                        usuarioAlumno.getResidencia(),
+                        usuarioAlumno.getSemestre(),
+                        "FALTA" // Estado por defecto (puedes ajustar la lógica si es necesario)
+                );
+            })
+            .collect(Collectors.toList());
+
+    // Obtener el nombre del coach asociado
+    String nombreCoach = actividadFisica.getCoachActividades().stream()
+            .map(coachActividad -> {
+                Entidad_Usuario coachUsuario = coachActividad.getUsuario();
+                return coachUsuario.getNombre() + " " + coachUsuario.getApellido();
+            })
+            .findFirst() // Asumimos un único coach asociado
+            .orElse("Sin Coach");
+
+    // Crear y devolver el DTO de Actividad Física
+    return new ActividadFisicaDTO(
+            actividadFisica.getIdActividadFisica(),
+            actividadFisica.getNombre(),
+            actividadFisica.getGrupo(),
+            actividadFisica.getDiaSemana(),
+            actividadFisica.getHora(),
+            actividadFisica.getIdentificadorGrupo(),
+            nombreCoach,
+            alumnos
+    );
+}
+
 
 
     public List<ActividadFisicaDTO> obtenerActividadesPorCoach(Long idCoach) {

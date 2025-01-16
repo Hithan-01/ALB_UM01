@@ -43,14 +43,16 @@
             <label>Semestre:</label>
             <input type="text" th:field="*{semestre}" class="form-control"/><br/>
 
-            <label>Facultad:</label>
-            <input type="text" th:field="*{facultad}" class="form-control"/><br/>
-
             <label>Residencia:</label>
             <input type="text" th:field="*{residencia}" class="form-control"/><br/>
 
             <label>Carrera:</label>
-            <input type="text" th:field="*{carrera}" class="form-control"/><br/>
+            <select th:field="*{idCarrera}" class="form-select">
+                <option th:each="carrera : ${carreras}" 
+                        th:value="${carrera.idCarrera}" 
+                        th:text="${carrera.nombre}">
+                </option>
+            </select><br/>
 
             <button type="submit" class="btn btn-primary">Registrar Alumno</button>
         </form>

@@ -5,6 +5,7 @@ import com.demo.alb_um.DTOs.ActividadFisicaDTO;
 import com.demo.alb_um.Modulos.Actividad_Fisica.Entidad_ActividadFisica;
 import com.demo.alb_um.Modulos.Alumno_Actividad.Ent_AlumnoActividad;
 import com.demo.alb_um.Modulos.Asitencia_Act.Ent_AsistenciaActividadFisica;
+import com.demo.alb_um.Modulos.Asitencia_Act.Ent_AsistenciaActividadFisica.EstadoFalta;
 import com.demo.alb_um.Modulos.Asitencia_Act.RepositorioAsistenciaActividadFisica;
 
 import jakarta.transaction.Transactional;
@@ -14,11 +15,11 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.util.Date;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
+import java.util.NoSuchElementException;
+
 
 @Service
 public class Servicio_lista {
@@ -119,16 +120,19 @@ private Entidad_ActividadFisica convertirADesdeDTO(ActividadFisicaDTO actividadD
     return entidad;
 }
 
-
 @Transactional
-public synchronized void guardarAsistencia(Entidad_Lista lista, List<Long> asistencias, LocalDateTime horaActual) {
+public synchronized void guardarAsistencia(Entidad_Lista lista, Map<String, String> asistencias, LocalDateTime horaActual) {
     Set<Ent_AlumnoActividad> alumnosActividad = lista.getActividadFisica().getAlumnoActividades();
 
+    // Convertir la fecha de la lista
+    LocalDate fechaLista = lista.getFecha().toInstant()
+                                 .atZone(ZoneId.systemDefault())
+                                 .toLocalDate();
     LocalTime horaInicioActividad = lista.getActividadFisica().getHora().toLocalTime();
-    int asistenciaLimiteMinutos = 10; // Parametrizable
-    LocalDateTime horaLimite = LocalDate.now().atTime(horaInicioActividad).plusMinutes(asistenciaLimiteMinutos);
+    int asistenciaLimiteMinutos = 11; // Límite de minutos para marcar asistencia
+    LocalDateTime horaLimite = LocalDateTime.of(fechaLista, horaInicioActividad).plusMinutes(asistenciaLimiteMinutos);
 
-    // Obtener asistencia existente de la lista y mapearla
+    // Mapear asistencias existentes de la lista
     Map<Long, Ent_AsistenciaActividadFisica> asistenciaMap = asistenciaRepositorio.findByLista(lista).stream()
             .collect(Collectors.toMap(
                     asistencia -> asistencia.getUsuarioAlumno().getIdUsuarioAlumno(),
@@ -137,38 +141,36 @@ public synchronized void guardarAsistencia(Entidad_Lista lista, List<Long> asist
 
     for (Ent_AlumnoActividad alumnoActividad : alumnosActividad) {
         Long alumnoId = alumnoActividad.getUsuarioAlumno().getIdUsuarioAlumno();
+        String estadoAsistencia = asistencias.get("asistencia-" + alumnoId);
+
         Ent_AsistenciaActividadFisica asistencia = asistenciaMap.getOrDefault(alumnoId, new Ent_AsistenciaActividadFisica());
 
-        boolean estaPresente = asistencias.contains(alumnoId);
-
-        // Actualizar asistencia solo si está presente
-        if (estaPresente) {
-            if (asistencia.isPresente()) {
-                continue; // Saltar si ya está registrado como presente
-            }
-            
-            if (asistencia.getFechaRegistro() == null) {
-                asistencia.setFechaRegistro(horaActual); // Registrar la hora actual si no existe
-            }
-
-            asistencia.setPresente(horaActual.isBefore(horaLimite) || horaActual.isEqual(horaLimite));
-            asistencia.setLista(lista);
-            asistencia.setUsuarioAlumno(alumnoActividad.getUsuarioAlumno());
-            asistenciaRepositorio.save(asistencia); // Guardar la asistencia
-        } else {
-            // Marcar como ausente
-            if (asistencia.getFechaRegistro() == null) {
-                asistencia.setFechaRegistro(horaActual); // Registrar evaluación
-            }
-
-            asistencia.setPresente(false);
-            asistencia.setLista(lista);
-            asistencia.setUsuarioAlumno(alumnoActividad.getUsuarioAlumno());
-            asistenciaRepositorio.save(asistencia);
+        if (asistencia.getEstadoFalta() == EstadoFalta.PRESENTE) {
+            continue; // No permitir cambiar asistencia ya marcada como presente
         }
+
+        asistencia.setLista(lista);
+        asistencia.setUsuarioAlumno(alumnoActividad.getUsuarioAlumno());
+
+        if ("presente".equals(estadoAsistencia)) {
+            if (horaActual.isAfter(horaLimite)) {
+                // Llegó tarde, marcar como falta con hora actual
+                asistencia.setEstadoFalta(EstadoFalta.FALTA);
+                asistencia.setFechaRegistro(horaActual); // Registrar la hora actual para que se vea cuándo llegó
+            } else {
+                // Llegó a tiempo, marcar como presente
+                asistencia.setEstadoFalta(EstadoFalta.PRESENTE);
+                asistencia.setFechaRegistro(horaActual); // Registrar la hora real
+            }
+        } else if ("falta".equals(estadoAsistencia)) {
+            // Marcar como falta explícitamente, usar fecha de la lista
+            asistencia.setEstadoFalta(EstadoFalta.FALTA);
+            asistencia.setFechaRegistro(LocalDateTime.of(fechaLista, LocalTime.MIN)); // Solo la fecha de la lista
+        }
+
+        asistenciaRepositorio.save(asistencia);
     }
 }
-
 
     public Entidad_Lista obtenerListaPorId(Long idLista) {
         return repositorioLista.findById(idLista)

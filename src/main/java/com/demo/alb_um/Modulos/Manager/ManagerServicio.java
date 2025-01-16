@@ -14,6 +14,8 @@ import com.demo.alb_um.Modulos.Admn.Ent_UsuarioAdmin;
 import com.demo.alb_um.Modulos.Admn.UsuarioAdminRepositorio;
 import com.demo.alb_um.Modulos.Alumno.Entidad_Usuario_Alumno;
 import com.demo.alb_um.Modulos.Alumno.UsuarioAlumnoRepositorio;
+import com.demo.alb_um.Modulos.Carrera.Entidad_carrera;
+import com.demo.alb_um.Modulos.Carrera.Repositorio_Carrera;
 import com.demo.alb_um.Modulos.Servicio.Ent_Servicio;
 import com.demo.alb_um.Modulos.Servicio.ServicioRepositorio;
 import com.demo.alb_um.Modulos.Usuario.Entidad_Usuario;
@@ -55,30 +57,41 @@ public class ManagerServicio {
     @Autowired
     private UsuarioAdminRepositorio adminRepository;
 
-    public void registrarAlumno(RegistroAlumnoDTO dto) {
-        // Crear y guardar el Usuario
-        Entidad_Usuario usuario = new Entidad_Usuario();
-        usuario.setUserName(dto.getUserName());
-        usuario.setNombre(dto.getNombre());
-        usuario.setApellido(dto.getApellido());
-        usuario.setEmail(dto.getEmail());
-        usuario.setContrasena(dto.getContrasena());
-        usuario.setGenero(dto.getGenero());
-        usuario.setFecha_nacimiento(dto.getFechaNacimiento());
-        usuario.setTagCredencial(dto.gettagCredencial());
-        usuario.setRol("ALUMNO"); // Fijar rol
-        usuarioRepository.save(usuario);
+    @Autowired
+    private Repositorio_Carrera carreraRepository;
 
-        // Crear y guardar la información específica del Alumno
-        Entidad_Usuario_Alumno alumno = new Entidad_Usuario_Alumno();
-        alumno.setUsuario(usuario); // Relación con el Usuario
-        alumno.setSemestre(dto.getSemestre());
-        alumno.setFacultad(dto.getFacultad());
-        alumno.setResidencia(dto.getResidencia());
-        alumno.setCarrera(dto.getCarrera());
 
-        alumnoRepository.save(alumno);
-    }
+
+@Transactional
+public void registrarAlumno(RegistroAlumnoDTO dto) {
+    // Crear y guardar el Usuario
+    Entidad_Usuario usuario = new Entidad_Usuario();
+    usuario.setUserName(dto.getUserName());
+    usuario.setNombre(dto.getNombre());
+    usuario.setApellido(dto.getApellido());
+    usuario.setEmail(dto.getEmail());
+    usuario.setContrasena(dto.getContrasena());
+    usuario.setGenero(dto.getGenero());
+    usuario.setFecha_nacimiento(dto.getFechaNacimiento());
+    usuario.setTagCredencial(dto.getTagCredencial());
+    usuario.setRol("ALUMNO"); // Fijar rol
+    usuarioRepository.save(usuario);
+
+
+
+    Entidad_carrera carrera = carreraRepository.findById(dto.getIdCarrera())
+            .orElseThrow(() -> new RuntimeException("Carrera no encontrada con ID: " + dto.getIdCarrera()));
+
+    // Crear y guardar la información específica del Alumno
+    Entidad_Usuario_Alumno alumno = new Entidad_Usuario_Alumno();
+    alumno.setUsuario(usuario); // Relación con el Usuario
+    alumno.setSemestre(dto.getSemestre());
+  
+    alumno.setCarrera(carrera);   // Relación con Carrera
+    alumno.setResidencia(dto.getResidencia());
+
+    alumnoRepository.save(alumno);
+}
 
     public void registrarAdmin(RegistroAdminDTO dto) {
         // 1. Crear y guardar el Usuario

@@ -16,12 +16,18 @@ public class Ent_AsistenciaActividadFisica {
     @Column(name = "id_asistencia_actividad_fisica")
     private Long idAsistenciaActividadFisica;
     
-    @Column(name = "presente")
-private boolean presente;
+
 
 @Column(name = "fecha_registro")
 private LocalDateTime fechaRegistro;
 
+
+
+
+
+@Enumerated(EnumType.STRING)
+@Column(name = "estado_falta", nullable = false)
+private EstadoFalta estadoFalta = EstadoFalta.FALTA; // Valor por defecto
 
     @ManyToOne
     @JoinColumn(name = "id_lista")
@@ -60,19 +66,27 @@ private LocalDateTime fechaRegistro;
         this.usuarioAlumno = usuarioAlumno;
     }
 
-    public boolean isPresente() {
-        return presente;
-    }
-    
-    public void setPresente(boolean presente) {
-        this.presente = presente;
-    }
+
     public LocalDateTime getFechaRegistro() {
         return fechaRegistro;
     }
     
     public void setFechaRegistro(LocalDateTime fechaRegistro) {
         this.fechaRegistro = fechaRegistro;
+    }
+
+    public EstadoFalta getEstadoFalta() {
+        return estadoFalta;
+    }
+
+    public void setEstadoFalta(EstadoFalta estadoFalta) {
+        this.estadoFalta = estadoFalta;
+    }
+
+    public enum EstadoFalta {
+        PRESENTE,
+        FALTA,
+        JUSTIFICADA
     }
     
 }

@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.LocalDateTime;
-import java.util.List;
+import java.util.Map;
 
 import com.demo.alb_um.DTOs.ActividadFisicaDTO;
 import com.demo.alb_um.DTOs.PaseListaDTO;
@@ -48,7 +48,7 @@ public class CoachControlador {
     }
 
   
-    @PostMapping("/paseLista/{idActividadFisica}")
+@PostMapping("/paseLista/{idActividadFisica}")
 public String iniciarPaseLista(@PathVariable Long idActividadFisica, Model model, RedirectAttributes redirectAttributes) {
     try {
         PaseListaDTO paseListaInfo = coachActividadServicio.iniciarPaseLista(idActividadFisica);
@@ -65,14 +65,20 @@ public String iniciarPaseLista(@PathVariable Long idActividadFisica, Model model
     }
 }
 
-    @PostMapping("/guardarAsistencia/{idLista}")
-    public String guaradarAsistencia(@PathVariable Long idLista, @RequestParam("asistencias") List<Long> asistencias) {
-       
-        Entidad_Lista lista = listaServicio.obtenerListaPorId(idLista);
+@PostMapping("/guardarAsistencia/{idLista}")
+public String guardarAsistencia(@PathVariable Long idLista,
+                                @RequestParam Map<String, String> asistencias,
+                                Model model) {
+    // Obtener la lista correspondiente
+    Entidad_Lista lista = listaServicio.obtenerListaPorId(idLista);
 
-        LocalDateTime horaActual = LocalDateTime.now();
-        listaServicio.guardarAsistencia(lista, asistencias, horaActual);
+    // Obtener la hora actual
+    LocalDateTime horaActual = LocalDateTime.now();
 
-        return "redirect:/portal/inicio";
-    }
+    // Guardar asistencia en el servicio
+    listaServicio.guardarAsistencia(lista, asistencias, horaActual);
+
+    return "redirect:/portal/inicio";
+}
+
 }

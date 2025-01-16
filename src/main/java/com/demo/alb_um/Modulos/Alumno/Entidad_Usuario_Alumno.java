@@ -7,7 +7,7 @@ import com.demo.alb_um.Modulos.Inscripcion_Taller.Ent_InscripcionTaller;
 import com.demo.alb_um.Modulos.Usuario.Entidad_Usuario;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
-
+import com.demo.alb_um.Modulos.Carrera.Entidad_carrera;
 import jakarta.persistence.*;
 import java.util.Set;
 
@@ -24,14 +24,12 @@ public class Entidad_Usuario_Alumno {
     @Column(name = "semestre", length = 10)
     private String semestre;
 
-    @Column(name = "facultad", length = 20)
-    private String facultad;
-
     @Column(name = "residencia", length = 20)
     private String residencia;
 
-    @Column(name = "carrera", length = 50)
-    private String carrera; // Nuevo campo agregado
+    @ManyToOne
+    @JoinColumn(name = "id_carrera", nullable = true)
+    private Entidad_carrera carrera;
 
     @ManyToOne
     @JoinColumn(name = "usuario_id", nullable = false)
@@ -60,12 +58,15 @@ public class Entidad_Usuario_Alumno {
 
     // Getters and Setters
 
-    public String getCarrera(){
+
+
+
+    public Entidad_carrera getCarrera() {
         return carrera;
     }
 
-    public void setCarrera(String carrera){
-        this.carrera= carrera;
+    public void setCarrera(Entidad_carrera carrera) {
+        this.carrera = carrera;
     }
 
     public Long getIdUsuarioAlumno() {
@@ -84,13 +85,6 @@ public class Entidad_Usuario_Alumno {
         this.semestre = semestre;
     }
 
-    public String getFacultad() {
-        return facultad;
-    }
-
-    public void setFacultad(String facultad) {
-        this.facultad = facultad;
-    }
 
     public String getResidencia() {
         return residencia;

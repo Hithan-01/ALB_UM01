@@ -16,9 +16,9 @@ public class RegistroAlumnoDTO {
 
     // Datos específicos del Alumno
     private String semestre;
-    private String facultad;
+
+    private Long idCarrera; // Referencia al ID de la carrera
     private String residencia;
-    private String carrera;
 
     // Getters y Setters
     public String getUserName() { return userName; }
@@ -42,18 +42,15 @@ public class RegistroAlumnoDTO {
     public LocalDate getFechaNacimiento() { return fechaNacimiento; }
     public void setFechaNacimiento(LocalDate fechaNacimiento) { this.fechaNacimiento = fechaNacimiento; }
 
+    public String getTagCredencial() { return tagCredencial; }
+    public void setTagCredencial(String tagCredencial) { this.tagCredencial = tagCredencial; }
+
     public String getSemestre() { return semestre; }
     public void setSemestre(String semestre) { this.semestre = semestre; }
-
-    public String getFacultad() { return facultad; }
-    public void setFacultad(String facultad) { this.facultad = facultad; }
+    
+    public Long getIdCarrera() { return idCarrera; }
+    public void setIdCarrera(Long idCarrera) { this.idCarrera = idCarrera; }
 
     public String getResidencia() { return residencia; }
     public void setResidencia(String residencia) { this.residencia = residencia; }
-
-    public String getCarrera() { return carrera; }
-    public void setCarrera(String carrera) { this.carrera = carrera; }
-
-    public String gettagCredencial(){ return tagCredencial;}
-    public void settagCredencial(String tagCredencial) {this.tagCredencial = tagCredencial; }
 }

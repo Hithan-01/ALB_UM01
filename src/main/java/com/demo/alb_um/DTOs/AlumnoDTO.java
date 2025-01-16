@@ -9,13 +9,14 @@ public class AlumnoDTO {
     private String nombreCoach;
     private String horario;
     private boolean yaAsistio;
+    private String estadoFalta;
     private LocalDateTime fechaRegistro;
     private String facultad;
     private String residencia;
     private String semestre;
 
     // Constructor
-    public AlumnoDTO(Long idUsuarioAlumno, String nombreCompleto, String nombreActividadFisica, String nombreCoach, String horario, boolean yaAsistio, LocalDateTime fechaRegistro, String facultad, String residencia, String semestre) {
+    public AlumnoDTO(Long idUsuarioAlumno, String nombreCompleto, String nombreActividadFisica, String nombreCoach, String horario, boolean yaAsistio, LocalDateTime fechaRegistro, String facultad, String residencia, String semestre, String estadoFalta) {
         this.idUsuarioAlumno = idUsuarioAlumno;
         this.nombreCompleto = nombreCompleto;
         this.nombreActividadFisica = nombreActividadFisica;
@@ -26,6 +27,7 @@ public class AlumnoDTO {
         this.facultad = facultad;
         this.residencia = residencia;
         this.semestre = semestre;
+        this.estadoFalta = estadoFalta;
     }
 
     // Getters and setters
@@ -107,5 +109,13 @@ public class AlumnoDTO {
 
     public void setSemestre(String semestre) {
         this.semestre = semestre;
+    }
+
+    public String getEstadoFalta() {
+        return estadoFalta;
+    }
+
+    public void setEstadoFalta(String estadoFalta) {
+        this.estadoFalta = estadoFalta;
     }
 }

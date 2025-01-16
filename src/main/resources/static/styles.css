@@ -75,3 +75,22 @@ th, td {
 th {
     background-color: #f2f2f2;
 }
+
+
+#suggestions {
+    max-height: 200px; /* Limitar la altura de las sugerencias */
+    overflow-y: auto; /* Hacer scroll si hay muchas sugerencias */
+    border: 1px solid #ddd;
+    background: #fff;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+#suggestions .list-group-item {
+    cursor: pointer;
+}
+
+#suggestions .list-group-item:hover {
+    background-color: #f1f1f1;
+}

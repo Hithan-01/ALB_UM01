@@ -9,6 +9,7 @@ import com.demo.alb_um.DTOs.RegistroAlumnoDTO;
 import com.demo.alb_um.DTOs.RegistroCoachDTO;
 import com.demo.alb_um.DTOs.RegistroServicioDTO;
 import com.demo.alb_um.Modulos.Actividad_Fisica.Entidad_ActividadFisica;
+import com.demo.alb_um.Modulos.Carrera.Repositorio_Carrera;
 import com.demo.alb_um.Modulos.Coach.CoachActividadRepositorio;
 import com.demo.alb_um.Modulos.Coach.CoachActividadServicio;
 import com.demo.alb_um.Modulos.Coach.Ent_CoachActividad;
@@ -43,6 +44,13 @@ public class ManagerControlador {
 
     @Autowired
     private CoachActividadRepositorio coachActividadRepositorio;
+
+    @Autowired
+    private Repositorio_Carrera carreraRepository;
+    
+
+
+
     
     /**
      * Lista todas las actividades físicas agrupadas por tipo.
@@ -243,18 +251,20 @@ public String mostrarFormularioEdicion(@PathVariable Long id, Model model) {
         return "usuarios";
     }
 
-        @GetMapping("/registrar-alumno")
+    @GetMapping("/registrar-alumno")
     public String mostrarFormulario(Model model) {
         model.addAttribute("registroAlumno", new RegistroAlumnoDTO());
+        model.addAttribute("carreras", carreraRepository.findAll()); // Cargar todas las carreras disponibles
         return "formularioAlumno"; // Vista HTML
     }
-
+    
     // Procesar formulario y guardar alumno
     @PostMapping("/registrar-alumno")
     public String registrarAlumno(@ModelAttribute("registroAlumno") RegistroAlumnoDTO registroAlumnoDTO) {
-        managerServicio.registrarAlumno(registroAlumnoDTO);
+        managerServicio.registrarAlumno(registroAlumnoDTO); // Usar el servicio para registrar
         return "redirect:/portal/manager/usuarios?success"; // Redirige con mensaje de éxito
     }
+    
 
     @GetMapping("/registrar-admin")
     public String mostrarFormularioAdmin(Model model) {

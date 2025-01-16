@@ -23,6 +23,7 @@ import com.demo.alb_um.Modulos.Taller.Ent_Taller.EstadoTaller;
 import com.demo.alb_um.Modulos.Alumno.UsuarioAlumnoServicio;
 import com.demo.alb_um.Modulos.Antropometria.AntropometriaServicio;
 import com.demo.alb_um.Modulos.Antropometria.Ent_Antro;
+import com.demo.alb_um.Modulos.Actividad_Fisica.ActividadFisicaServicio;
 import com.demo.alb_um.Modulos.Admn.UsuarioAdminServicio;
 
 @Service
@@ -34,10 +35,14 @@ public class Servicios_Controllers {
     private final InscripcionTallerServicio inscripcionTallerServicio;
 
     private final AntropometriaServicio antropometriaServicio;
+
+
+private final ActividadFisicaServicio actividadFisicaServicio;
     @Autowired
-public Servicios_Controllers(InscripcionTallerServicio inscripcionTallerServicio, AntropometriaServicio antropometriaServicio) {
+public Servicios_Controllers(InscripcionTallerServicio inscripcionTallerServicio, AntropometriaServicio antropometriaServicio, ActividadFisicaServicio actividadFisicaServicio) {
     this.inscripcionTallerServicio = inscripcionTallerServicio;
     this.antropometriaServicio = antropometriaServicio;
+    this.actividadFisicaServicio = actividadFisicaServicio;
 }
 
     @Autowired CoachActividadServicio coachActividadServicio;
@@ -103,7 +108,7 @@ public String cargarVistaAlumno(
 
 
     
-    public String cargarVistaAdmin(String userName, UsuarioAdminServicio usuarioAdminServicio, Model model) {
+public String cargarVistaAdmin(String userName, UsuarioAdminServicio usuarioAdminServicio, Model model) {
         Optional<AdminDTO> adminOpt = usuarioAdminServicio.obtenerInformacionAdminPorUserName(userName);
         if (adminOpt.isPresent()) {
             AdminDTO admin = adminOpt.get();
@@ -146,6 +151,12 @@ public String cargarVistaAlumno(
                         System.err.println("Error al cargar talleres: " + e.getMessage());
                         e.printStackTrace();
                     }
+                    break;
+
+                    case "Aptitud Fisica":
+                    List<ActividadFisicaDTO> actividades = actividadFisicaServicio.obtenerTodasComoDTO();
+                    System.out.println("Actividades obtenidas: " + (actividades != null ? actividades.size() : "null"));
+                    model.addAttribute("actividades", actividades != null ? actividades : List.of());
                     break;
                 
                 default:

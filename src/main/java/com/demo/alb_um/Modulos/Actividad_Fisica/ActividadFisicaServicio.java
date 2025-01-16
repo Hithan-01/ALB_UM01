@@ -8,9 +8,11 @@ import com.demo.alb_um.Modulos.Alumno.Entidad_Usuario_Alumno;
 import com.demo.alb_um.Modulos.Alumno_Actividad.AlumnoActividadId;
 import com.demo.alb_um.Modulos.Alumno_Actividad.AlumnoActividadRepositorio;
 import com.demo.alb_um.Modulos.Alumno_Actividad.Ent_AlumnoActividad;
+import com.demo.alb_um.Modulos.Carrera.Entidad_carrera;
 import com.demo.alb_um.Modulos.Coach.CoachActividadId;
 import com.demo.alb_um.Modulos.Coach.CoachActividadRepositorio;
 import com.demo.alb_um.Modulos.Coach.Ent_CoachActividad;
+import com.demo.alb_um.Modulos.Facultad.Entidad_facultad;
 import com.demo.alb_um.Modulos.Usuario.Entidad_Usuario;
 import com.demo.alb_um.Modulos.Usuario.UsuarioRepositorio;
 
@@ -147,19 +149,23 @@ public class ActividadFisicaServicio {
             List<AlumnoDTO> alumnos = actividad.getAlumnoActividades().stream()
                     .map(relacion -> {
                         Entidad_Usuario_Alumno usuarioAlumno = relacion.getUsuarioAlumno();
-                        Entidad_Usuario usuario = usuarioAlumno.getUsuario();
+                        Entidad_carrera carrera = usuarioAlumno.getCarrera();
+                        Entidad_facultad facultad = carrera != null ? carrera.getFacultad() : null;
+                        String nombreFacultad = facultad != null ? facultad.getNombre() : "Sin Facultad";
                         return new AlumnoDTO(
-                                usuarioAlumno.getIdUsuarioAlumno(),
-                                usuario.getNombre() + " " + usuario.getApellido(),
-                                actividad.getNombre(),
-                                null,
-                                actividad.getHora().toString(),
-                                false,
-                                null,
-                                usuarioAlumno.getFacultad(),
-                                usuarioAlumno.getResidencia(),
-                                usuarioAlumno.getSemestre()
-                        );
+                            usuarioAlumno.getIdUsuarioAlumno(),
+                            usuarioAlumno.getUsuario().getNombre() + " " + usuarioAlumno.getUsuario().getApellido(),
+                            null, // Actividad física no aplicable aquí
+                            null, // Nombre del coach no aplicable aquí
+                            null, // Horario no aplicable aquí
+                            false, // Ya asistió (por defecto)
+                            null, // Fecha de registro (por defecto)
+                            nombreFacultad, // Facultad obtenida desde la relación
+                            usuarioAlumno.getResidencia(),
+                            usuarioAlumno.getSemestre(),
+                            "FALTA" // estadoFalta, por defecto si no tienes lógica para determinarlo aquí
+                    );
+                    
                     })
                     .collect(Collectors.toList());
     
@@ -191,19 +197,24 @@ public List<AlumnoDTO> obtenerAlumnosPorActividad(Long idActividadFisica) {
     return actividad.getAlumnoActividades().stream()
             .map(relacion -> {
                 Entidad_Usuario_Alumno usuarioAlumno = relacion.getUsuarioAlumno();
-                Entidad_Usuario usuario = usuarioAlumno.getUsuario();
+                Entidad_carrera carrera = usuarioAlumno.getCarrera();
+                Entidad_facultad facultad = carrera != null ? carrera.getFacultad() : null;
+                String nombreFacultad = facultad != null ? facultad.getNombre() : "Sin Facultad";
+
                 return new AlumnoDTO(
-                        usuarioAlumno.getIdUsuarioAlumno(),
-                        usuario.getNombre() + " " + usuario.getApellido(),
-                        actividad.getNombre(),
-                        null,
-                        actividad.getHora().toString(),
-                        false,
-                        null,
-                        usuarioAlumno.getFacultad(),
-                        usuarioAlumno.getResidencia(),
-                        usuarioAlumno.getSemestre()
-                );
+                    usuarioAlumno.getIdUsuarioAlumno(),
+                    usuarioAlumno.getUsuario().getNombre() + " " + usuarioAlumno.getUsuario().getApellido(),
+                    null, // Actividad física no aplicable aquí
+                    null, // Nombre del coach no aplicable aquí
+                    null, // Horario no aplicable aquí
+                    false, // Ya asistió (por defecto)
+                    null, // Fecha de registro (por defecto)
+                    nombreFacultad, // Facultad obtenida desde la relación
+                    usuarioAlumno.getResidencia(),
+                    usuarioAlumno.getSemestre(),
+                    "FALTA" // estadoFalta, por defecto si no tienes lógica para determinarlo aquí
+            );
+            
             })
             .collect(Collectors.toList());
 }
@@ -221,20 +232,24 @@ Ent_AlumnoActividad alumnoActividad = alumnoActividades.get(0); // Tomar el prim
 
     // Convertir la entidad a DTO
     Entidad_Usuario_Alumno usuarioAlumno = alumnoActividad.getUsuarioAlumno();
-    Entidad_ActividadFisica actividad = alumnoActividad.getActividadFisica();
+    Entidad_carrera carrera = usuarioAlumno.getCarrera();
+    Entidad_facultad facultad = carrera != null ? carrera.getFacultad() : null;
+    String nombreFacultad = facultad != null ? facultad.getNombre() : "Sin Facultad";
 
-    return new AlumnoDTO(
-            usuarioAlumno.getIdUsuarioAlumno(),
-            usuarioAlumno.getUsuario().getNombre() + " " + usuarioAlumno.getUsuario().getApellido(),
-            actividad != null ? actividad.getNombre() : "Sin actividad",
-            null, // Nombre del coach si lo necesitas
-            actividad != null ? actividad.getDiaSemana() + " " + actividad.getHora() : "Sin horario",
-            false, // Actualiza si el alumno asistió
-            null,  // Fecha de registro
-            usuarioAlumno.getFacultad(),
-            usuarioAlumno.getResidencia(),
-            usuarioAlumno.getSemestre()
-    );
+                return new AlumnoDTO(
+                    usuarioAlumno.getIdUsuarioAlumno(),
+                    usuarioAlumno.getUsuario().getNombre() + " " + usuarioAlumno.getUsuario().getApellido(),
+                    null, // Actividad física no aplicable aquí
+                    null, // Nombre del coach no aplicable aquí
+                    null, // Horario no aplicable aquí
+                    false, // Ya asistió (por defecto)
+                    null, // Fecha de registro (por defecto)
+                    nombreFacultad, // Facultad obtenida desde la relación
+                    usuarioAlumno.getResidencia(),
+                    usuarioAlumno.getSemestre(),
+                    "FALTA" // estadoFalta, por defecto si no tienes lógica para determinarlo aquí
+            );
+
 }
 
 @Transactional
@@ -338,5 +353,12 @@ public ActividadFisicaDTO convertirAActividadFisicaDTO(Entidad_ActividadFisica a
             null // No necesitas alumnos para editar
     );
 }
+
+public List<ActividadFisicaDTO> buscarPorFiltro(String filtro) {
+    return actividadFisicaRepositorio.buscarPorFiltro(filtro).stream()
+        .map(this::convertirAActividadFisicaDTO)
+        .collect(Collectors.toList());
+}
+
 
 }
