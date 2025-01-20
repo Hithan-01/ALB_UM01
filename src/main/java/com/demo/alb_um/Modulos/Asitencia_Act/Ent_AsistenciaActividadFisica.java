@@ -21,7 +21,14 @@ public class Ent_AsistenciaActividadFisica {
 @Column(name = "fecha_registro")
 private LocalDateTime fechaRegistro;
 
+@Column(name = "justificado_por")
+private String justificadoPor;
 
+@Column(name = "fecha_justificacion")
+private LocalDateTime fechaJustificacion;
+
+@Column(name = "comentario_justificacion")
+private String comentarioJustificacion;
 
 
 
@@ -87,6 +94,30 @@ private EstadoFalta estadoFalta = EstadoFalta.FALTA; // Valor por defecto
         PRESENTE,
         FALTA,
         JUSTIFICADA
+    }
+
+    public String getJustificadoPor() {
+        return justificadoPor;
+    }
+
+    public void setJustificadoPor(String justificadoPor) {
+        this.justificadoPor = justificadoPor;
+    }
+
+    public LocalDateTime getFechaJustificacion() {
+        return fechaJustificacion;
+    }
+
+    public void setFechaJustificacion(LocalDateTime fechaJustificacion) {
+        this.fechaJustificacion = fechaJustificacion;
+    }
+
+    public String getComentarioJustificacion() {
+        return comentarioJustificacion;
+    }
+
+    public void setComentarioJustificacion(String comentarioJustificacion) {
+        this.comentarioJustificacion = comentarioJustificacion;
     }
     
 }

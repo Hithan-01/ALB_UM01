@@ -1,10 +1,8 @@
 package com.demo.alb_um.Login;
-
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.time.LocalDateTime;
 import java.util.List;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.ui.Model;
@@ -17,12 +15,16 @@ import com.demo.alb_um.DTOs.AdminDTO;
 import com.demo.alb_um.DTOs.CitaDTO;
 import com.demo.alb_um.DTOs.TallerInscripcionDTO;
 import com.demo.alb_um.Modulos.Coach.CoachActividadServicio;
+import com.demo.alb_um.Modulos.Facultad.Entidad_facultad;
+import com.demo.alb_um.Modulos.Facultad.FacultadServicio;
 import com.demo.alb_um.Modulos.Inscripcion_Taller.InscripcionTallerServicio;
 import com.demo.alb_um.Modulos.Manager.ManagerServicio;
 import com.demo.alb_um.Modulos.Taller.Ent_Taller.EstadoTaller;
 import com.demo.alb_um.Modulos.Alumno.UsuarioAlumnoServicio;
 import com.demo.alb_um.Modulos.Antropometria.AntropometriaServicio;
 import com.demo.alb_um.Modulos.Antropometria.Ent_Antro;
+import com.demo.alb_um.Modulos.Carrera.CarreraServicio;
+import com.demo.alb_um.Modulos.Carrera.Entidad_carrera;
 import com.demo.alb_um.Modulos.Actividad_Fisica.ActividadFisicaServicio;
 import com.demo.alb_um.Modulos.Admn.UsuarioAdminServicio;
 
@@ -38,6 +40,13 @@ public class Servicios_Controllers {
 
 
 private final ActividadFisicaServicio actividadFisicaServicio;
+
+@Autowired
+private FacultadServicio facultadServicio;
+
+@Autowired
+private CarreraServicio carreraServicio;
+
     @Autowired
 public Servicios_Controllers(InscripcionTallerServicio inscripcionTallerServicio, AntropometriaServicio antropometriaServicio, ActividadFisicaServicio actividadFisicaServicio) {
     this.inscripcionTallerServicio = inscripcionTallerServicio;
@@ -109,64 +118,80 @@ public String cargarVistaAlumno(
 
     
 public String cargarVistaAdmin(String userName, UsuarioAdminServicio usuarioAdminServicio, Model model) {
-        Optional<AdminDTO> adminOpt = usuarioAdminServicio.obtenerInformacionAdminPorUserName(userName);
-        if (adminOpt.isPresent()) {
-            AdminDTO admin = adminOpt.get();
-            model.addAttribute("admin", admin);
+    // Obtener información del administrador
+    Optional<AdminDTO> adminOpt = usuarioAdminServicio.obtenerInformacionAdminPorUserName(userName);
 
-            switch (admin.getServicio().getNombre()) {
-                case "Antropometria":
-                    List<CitaDTO> citasPendientes = usuarioAdminServicio.obtenerCitasPendientesPorServicio(
-                        admin.getServicio().getIdServicio());
-                    model.addAttribute("citasPendientes", citasPendientes);
-                    break;
-                
-                case "Talleres":
-                    try {
-                        // Obtener y loguear los talleres del día
-                        List<TallerDTO> talleresDelDia = inscripcionTallerServicio.obtenerTalleresDelDia();
-                        System.out.println("Talleres encontrados para el día: " + talleresDelDia.size());
-                        
-                        // Imprimir cada taller para debug
-                        talleresDelDia.forEach(taller -> {
-                            System.out.println(String.format(
-                                "Taller: %s, Fecha: %s, Hora: %s, Estado: %s",
-                                taller.getNombre(),
-                                taller.getFecha(),
-                                taller.getHora(),
-                                taller.getEstado()
-                            ));
-                        });
+    // Cargar facultades y carreras para búsquedas avanzadas
+    List<Entidad_facultad> facultades = facultadServicio.obtenerTodas();
+    List<Entidad_carrera> carreras = carreraServicio.obtenerTodas();
+    model.addAttribute("facultades", facultades);
+    model.addAttribute("carreras", carreras);
 
-                        // Filtrar talleres en curso
-                        List<TallerDTO> talleresEnCurso = talleresDelDia.stream()
-                            .filter(t -> t.getEstado() == EstadoTaller.EN_CURSO)
-                            .collect(Collectors.toList());
-                        
-                        model.addAttribute("talleresDelDia", talleresDelDia);
-                        model.addAttribute("talleresEnCurso", talleresEnCurso);
-                        model.addAttribute("horaActual", LocalDateTime.now());
-                        
-                    } catch (Exception e) {
-                        System.err.println("Error al cargar talleres: " + e.getMessage());
-                        e.printStackTrace();
-                    }
-                    break;
+    // Validar si el administrador existe
+    if (adminOpt.isPresent()) {
+        AdminDTO admin = adminOpt.get();
+        model.addAttribute("admin", admin);
 
-                    case "Aptitud Fisica":
-                    List<ActividadFisicaDTO> actividades = actividadFisicaServicio.obtenerTodasComoDTO();
-                    System.out.println("Actividades obtenidas: " + (actividades != null ? actividades.size() : "null"));
-                    model.addAttribute("actividades", actividades != null ? actividades : List.of());
-                    break;
-                
-                default:
-                    break;
-            }
+        // Acciones según el servicio del administrador
+        switch (admin.getServicio().getNombre()) {
+            case "Antropometria":
+                // Cargar citas pendientes para Antropometría
+                List<CitaDTO> citasPendientes = usuarioAdminServicio.obtenerCitasPendientesPorServicio(
+                    admin.getServicio().getIdServicio());
+                model.addAttribute("citasPendientes", citasPendientes);
 
-            return "admin";
+                // Redirigir a la vista específica de Antropometría
+                return "antropometria";
+            
+            case "Talleres":
+                try {
+                    // Obtener talleres del día
+                    List<TallerDTO> talleresDelDia = inscripcionTallerServicio.obtenerTalleresDelDia();
+
+                    // Loguear los talleres encontrados para depuración
+                    talleresDelDia.forEach(taller -> System.out.println(String.format(
+                        "Taller: %s, Fecha: %s, Hora: %s, Estado: %s",
+                        taller.getNombre(),
+                        taller.getFecha(),
+                        taller.getHora(),
+                        taller.getEstado()
+                    )));
+
+                    // Filtrar talleres en curso
+                    List<TallerDTO> talleresEnCurso = talleresDelDia.stream()
+                        .filter(t -> t.getEstado() == EstadoTaller.EN_CURSO)
+                        .collect(Collectors.toList());
+
+                    // Añadir datos al modelo
+                    model.addAttribute("talleresDelDia", talleresDelDia);
+                    model.addAttribute("talleresEnCurso", talleresEnCurso);
+                    model.addAttribute("horaActual", LocalDateTime.now());
+                } catch (Exception e) {
+                    System.err.println("Error al cargar talleres: " + e.getMessage());
+                    e.printStackTrace();
+                }
+
+                // Redirigir a la vista específica de Talleres
+                return "talleres";
+
+            case "Aptitud Fisica":
+                // Cargar actividades físicas
+                List<ActividadFisicaDTO> actividades = actividadFisicaServicio.obtenerTodasComoDTO();
+                System.out.println("Actividades obtenidas: " + (actividades != null ? actividades.size() : "null"));
+                model.addAttribute("actividades", actividades != null ? actividades : List.of());
+
+                // Redirigir a la vista específica de Aptitud Física
+                return "/Vistas_Admins_Aptitud/Vista_General";
+            
+            default:
+                // Servicio no especificado, redirigir a una vista genérica
+                return "/Vistas_Admins_Generales/Vista_general";
         }
-        return "error";
     }
+
+    // Si no se encuentra el administrador, redirigir a una vista de error
+    return "error";
+}
 
 
     public String cargarVistaManager(String userName, ManagerServicio managerServicio, Model model) {

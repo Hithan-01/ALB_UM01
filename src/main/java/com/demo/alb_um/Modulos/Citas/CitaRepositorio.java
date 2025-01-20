@@ -43,5 +43,7 @@ List<Ent_Cita> findCitasConfirmadasByUsuarioAndServicio(
     @Param("nombreServicio") String nombreServicio,
     @Param("estadoAsistencia") String estadoAsistencia);
 
+    boolean existsByUsuarioAlumno_IdUsuarioAlumnoAndHorarioServicio_Servicio_IdServicioAndVerificacionTrue(Long alumnoId, Long servicioId);
+
 
 }

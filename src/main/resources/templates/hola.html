@@ -59,6 +59,7 @@
             <div th:if="${admin.servicio.nombre != 'Antropometria' 
             and admin.servicio.nombre != 'Talleres' 
             and admin.servicio.nombre != 'Aptitud Fisica'}">
+
                 <form th:action="@{/portal/admin/general/buscarAlumno}" method="get" class="mt-4">
                     <label for="search">Buscar Alumno (Username):</label>
                     <input type="text" id="search" name="search" class="form-control" placeholder="Username" required>
@@ -333,10 +334,7 @@
         </div>
     </div>
 </div>
-
-
-            
-                <script>
+    <script>
                     let registroModalLlegada;
 let registroModalSalida;
 
@@ -387,7 +385,7 @@ function registrarLlegada() {
     const formData = new URLSearchParams();
     formData.append('identificador', identificador);
 
-    fetch(`/portal/admin/taller/${tallerId}/registrarLlegada`, {
+    fetch(/portal/admin/taller/${tallerId}/registrarLlegada, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
@@ -396,7 +394,7 @@ function registrarLlegada() {
     })
         .then((response) => response.json())
         .then((data) => {
-            mensajeElement.className = `alert alert-${data.error ? 'danger' : 'success'}`;
+            mensajeElement.className = alert alert-${data.error ? 'danger' : 'success'};
             mensajeElement.textContent = data.message;
             mensajeElement.style.display = 'block';
 
@@ -430,7 +428,7 @@ function registrarSalida() {
     const formData = new URLSearchParams();
     formData.append('identificador', identificador);
 
-    fetch(`/portal/admin/taller/${tallerId}/registrarSalida`, {
+    fetch(/portal/admin/taller/${tallerId}/registrarSalida, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
@@ -439,7 +437,7 @@ function registrarSalida() {
     })
         .then((response) => response.json())
         .then((data) => {
-            mensajeElement.className = `alert alert-${data.error ? 'danger' : 'success'}`;
+            mensajeElement.className = alert alert-${data.error ? 'danger' : 'success'};
             mensajeElement.textContent = data.message;
             mensajeElement.style.display = 'block';
 
@@ -488,4 +486,4 @@ function updateCarreras() {
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
-</html>
+</html> 

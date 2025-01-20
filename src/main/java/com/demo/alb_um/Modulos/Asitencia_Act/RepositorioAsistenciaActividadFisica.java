@@ -18,4 +18,6 @@ public interface RepositorioAsistenciaActividadFisica extends JpaRepository<Ent_
 
      // Método para encontrar todas las asistencias de una lista específica
     List<Ent_AsistenciaActividadFisica> findByLista(Entidad_Lista lista);
+
+    long countByUsuarioAlumnoAndEstadoFalta(Entidad_Usuario_Alumno usuarioAlumno, Ent_AsistenciaActividadFisica.EstadoFalta estadoFalta);
 }

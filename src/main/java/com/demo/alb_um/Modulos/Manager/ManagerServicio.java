@@ -10,10 +10,15 @@ import com.demo.alb_um.DTOs.RegistroAdminDTO;
 import com.demo.alb_um.DTOs.RegistroAlumnoDTO;
 import com.demo.alb_um.DTOs.RegistroCoachDTO;
 import com.demo.alb_um.DTOs.RegistroServicioDTO;
+import com.demo.alb_um.Modulos.Actividad_Fisica.ActividadFisicaRepositorio;
+import com.demo.alb_um.Modulos.Actividad_Fisica.Entidad_ActividadFisica;
 import com.demo.alb_um.Modulos.Admn.Ent_UsuarioAdmin;
 import com.demo.alb_um.Modulos.Admn.UsuarioAdminRepositorio;
 import com.demo.alb_um.Modulos.Alumno.Entidad_Usuario_Alumno;
 import com.demo.alb_um.Modulos.Alumno.UsuarioAlumnoRepositorio;
+import com.demo.alb_um.Modulos.Alumno_Actividad.AlumnoActividadId;
+import com.demo.alb_um.Modulos.Alumno_Actividad.AlumnoActividadRepositorio;
+import com.demo.alb_um.Modulos.Alumno_Actividad.Ent_AlumnoActividad;
 import com.demo.alb_um.Modulos.Carrera.Entidad_carrera;
 import com.demo.alb_um.Modulos.Carrera.Repositorio_Carrera;
 import com.demo.alb_um.Modulos.Servicio.Ent_Servicio;
@@ -60,6 +65,12 @@ public class ManagerServicio {
     @Autowired
     private Repositorio_Carrera carreraRepository;
 
+    @Autowired
+    private ActividadFisicaRepositorio actividadFisicaRepository;
+
+    @Autowired
+    private AlumnoActividadRepositorio alumnoActividadRepository;
+
 
 
 @Transactional
@@ -77,8 +88,7 @@ public void registrarAlumno(RegistroAlumnoDTO dto) {
     usuario.setRol("ALUMNO"); // Fijar rol
     usuarioRepository.save(usuario);
 
-
-
+    // Buscar la carrera
     Entidad_carrera carrera = carreraRepository.findById(dto.getIdCarrera())
             .orElseThrow(() -> new RuntimeException("Carrera no encontrada con ID: " + dto.getIdCarrera()));
 
@@ -86,12 +96,27 @@ public void registrarAlumno(RegistroAlumnoDTO dto) {
     Entidad_Usuario_Alumno alumno = new Entidad_Usuario_Alumno();
     alumno.setUsuario(usuario); // Relación con el Usuario
     alumno.setSemestre(dto.getSemestre());
-  
-    alumno.setCarrera(carrera);   // Relación con Carrera
+    alumno.setCarrera(carrera); // Relación con Carrera
     alumno.setResidencia(dto.getResidencia());
-
     alumnoRepository.save(alumno);
+
+    // Crear y guardar la relación con la actividad física (si se seleccionó una)
+    if (dto.getIdActividadFisica() != null) {
+        Entidad_ActividadFisica actividad = actividadFisicaRepository.findById(dto.getIdActividadFisica())
+                .orElseThrow(() -> new RuntimeException("Actividad no encontrada con ID: " + dto.getIdActividadFisica()));
+
+        Ent_AlumnoActividad alumnoActividad = new Ent_AlumnoActividad();
+        AlumnoActividadId id = new AlumnoActividadId();
+        id.setIdUsuarioAlumno(alumno.getIdUsuarioAlumno());
+        id.setIdActividadFisica(actividad.getIdActividadFisica());
+        alumnoActividad.setId(id);
+        alumnoActividad.setUsuarioAlumno(alumno);
+        alumnoActividad.setActividadFisica(actividad);
+
+        alumnoActividadRepository.save(alumnoActividad);
+    }
 }
+
 
     public void registrarAdmin(RegistroAdminDTO dto) {
         // 1. Crear y guardar el Usuario

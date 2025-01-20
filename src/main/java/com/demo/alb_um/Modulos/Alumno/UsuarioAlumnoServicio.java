@@ -1,5 +1,7 @@
 package com.demo.alb_um.Modulos.Alumno;
+import com.demo.alb_um.DTOs.AlumnoBusquedaDTO;
 import com.demo.alb_um.DTOs.AlumnoDTO;
+import com.demo.alb_um.DTOs.BusquedaFaltas;
 import com.demo.alb_um.DTOs.CitaDTO;
 import com.demo.alb_um.DTOs.TallerInscripcionDTO;
 import com.demo.alb_um.Modulos.Asitencia_Act.Ent_AsistenciaActividadFisica;
@@ -20,6 +22,7 @@ import java.sql.Time;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -41,6 +44,9 @@ public class UsuarioAlumnoServicio {
     private InscripcionTallerRepositorio inscripcionTallerRepositorio;
 
 
+    public List<BusquedaFaltas> buscarFaltas(Date fecha, Long idFacultad, Long idCarrera, String semestre) {
+        return usuarioAlumnoRepositorio.buscarFaltasPorFiltros(fecha, idFacultad, idCarrera, semestre);
+    }
 
     // Obtener información completa del alumno por nombre de usuario
     public Optional<AlumnoDTO> obtenerInformacionAlumnoPorUserName(String userName) {
@@ -237,5 +243,12 @@ private AlumnoDTO convertirAAlumnoDTOSimple(Entidad_Usuario_Alumno alumno) {
         return Optional.empty();
     }
  
+    public List<AlumnoBusquedaDTO> buscarAvanzado(Long idFacultad, Long idCarrera, Integer numeroFaltas, 
+    String semestre, String filtroFaltas) {
+    return usuarioAlumnoRepositorio.busquedaAvanzada(idFacultad, idCarrera, numeroFaltas, semestre, filtroFaltas);
+}
 
+    
+
+    
 }

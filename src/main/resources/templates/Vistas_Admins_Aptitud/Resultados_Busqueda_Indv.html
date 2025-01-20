@@ -14,10 +14,10 @@
             Información General
         </div>
         <div class="card-body">
-            <p><strong>Nombre Completo:</strong> <span th:text="${alumno.usuario.nombre + ' ' + alumno.usuario.apellido}"></span></p>
+            <p><strong>Nombre Completo:</strong> <span th:text="${alumno.usuario.nombre} + ' ' + ${alumno.usuario.apellido}"></span></p>
             <p><strong>Matrícula:</strong> <span th:text="${alumno.usuario.userName}"></span></p>
-            <p><strong>Facultad:</strong> <span th:text="${alumno.facultad}"></span></p>
-            <p><strong>Carrera:</strong> <span th:text="${alumno.carrera}"></span></p>
+            <p><strong>Facultad:</strong> <span th:text="${facultad}"></span></p>
+            <p><strong>Carrera:</strong> <span th:text="${alumno.carrera.nombre}"></span></p>
             <p><strong>Residencia:</strong> <span th:text="${alumno.residencia}"></span></p>
             <p><strong>Semestre:</strong> <span th:text="${alumno.semestre}"></span></p>
         </div>
@@ -38,11 +38,16 @@
                         <th>Grupo</th>
                         <th>Asistencias</th>
                         <th>Faltas</th>
-                        <th>Justificadas</th> <!-- Nueva columna -->
+                        <th>Justificadas</th>
                         <th>Acciones</th>
                     </tr>
                 </thead>
                 <tbody>
+                    <!-- Verifica si la lista de actividades está vacía -->
+                    <tr th:if="${#lists.isEmpty(actividades)}">
+                        <td colspan="8" class="text-center">No hay actividades registradas para este alumno.</td>
+                    </tr>
+                    <!-- Itera sobre las actividades -->
                     <tr th:each="actividad : ${actividades}">
                         <td th:text="${actividad.nombre}"></td>
                         <td th:text="${actividad.diaSemana}"></td>
@@ -50,16 +55,15 @@
                         <td th:text="${actividad.grupo}"></td>
                         <td th:text="${actividad.asistencias}"></td>
                         <td th:text="${actividad.faltas}"></td>
-                        <td th:text="${actividad.justificadas}"></td> <!-- Dato nuevo -->
+                        <td th:text="${actividad.justificadas}"></td>
                         <td>
-                            <a th:href="@{/portal/admin/ver-detalles-asistencias/{idActividad}/{idAlumno}(idActividad=${actividad.idActividadFisica}, idAlumno=${alumno.idUsuarioAlumno})}">
-                                Ver detalles de asistencia
-                            </a>
+                            <form th:action="@{/portal/admin/ver-detalles-asistencias/{idActividad}/{idAlumno}(idActividad=${actividad.idActividadFisica}, idAlumno=${alumno.idUsuarioAlumno})}" method="get">
+                                <button type="submit" class="btn btn-primary">Ver detalles de asistencia</button>
+                            </form>
                         </td>
                     </tr>
                 </tbody>
             </table>
-            
         </div>
     </div>
 

@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalles de Asistencias</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container mt-5">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h5>Detalles de Asistencias - <span th:text="${alumno.usuario.nombre} + ' ' + ${alumno.usuario.apellido}"></span></h5>
+            </div>
+            <div class="card-body">
+                <h6>Alumno: <span th:text="${alumno.usuario.nombre} + ' ' + ${alumno.usuario.apellido}"></span></h6>
+                <h6>Matrícula: <span th:text="${alumno.usuario.userName}"></span></h6>
+
+                <!-- Tabla de asistencias con estado FALTA -->
+                <div th:if="${asistencias.?[estadoFalta == 'FALTA'].size() > 0}">
+                    <h5>Asistencias Pendientes de Justificación</h5>
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Hora de Clase</th>
+                                <th>Estado</th>
+                                <th>Actividad</th>
+                                <th>Día</th>
+                                <th>Fecha de Registro</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="asistencia : ${asistencias}" th:if="${asistencia['estadoFalta'] == 'FALTA'}">
+                                <td th:text="${asistencia['hora'] != null ? asistencia['hora'] : 'N/A'}"></td>
+                                <td th:text="${asistencia['estadoFalta'] != null ? asistencia['estadoFalta'] : 'Sin estado'}"></td>
+                                <td th:text="${asistencia['actividad'] != null ? asistencia['actividad'] : 'N/A'}"></td>
+                                <td th:text="${asistencia['diaSemana'] != null ? asistencia['diaSemana'] : 'N/A'}"></td>
+                                <td th:text="${asistencia['fechaRegistro'] != null ? #temporals.format(asistencia['fechaRegistro'], 'yyyy-MM-dd HH:mm:ss') : 'Sin registro'}"></td>
+
+                                <td>
+                                    <button type="button" class="btn btn-warning btn-sm"
+                                        data-bs-toggle="modal" data-bs-target="#justificarModal"
+                                        th:attr="data-id-asistencia=${asistencia['idAsistenciaActividadFisica']}">
+                                        Justificar
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Tabla de asistencias justificadas -->
+                <div th:if="${asistencias.?[estadoFalta == 'JUSTIFICADA'].size() > 0}">
+                    <h5>Asistencias Justificadas</h5>
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Justificado Por</th>
+                                <th>Fecha de Justificación</th>
+                                <th>Comentario</th>
+                                <th>Actividad</th>
+                                <th>Día</th>
+                                <th>Hora</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="asistencia : ${asistencias}" th:if="${asistencia['estadoFalta'] == 'JUSTIFICADA'}">
+                                <td th:text="${asistencia['fechaRegistro'] != null ? #temporals.format(asistencia['fechaRegistro'], 'yyyy-MM-dd HH:mm:ss') : 'Sin registro'}"></td>
+                                <td th:text="${asistencia['justificadoPor'] != null ? asistencia['justificadoPor'] : 'N/A'}"></td>
+                                <td th:text="${asistencia['fechaJustificacion'] != null ? #temporals.format(asistencia['fechaJustificacion'], 'yyyy-MM-dd HH:mm:ss') : 'Sin justificación'}"></td>
+                                <td th:text="${asistencia['comentario'] != null ? asistencia['comentario'] : 'Sin comentario'}"></td>
+                                <td th:text="${asistencia['actividad'] != null ? asistencia['actividad'] : 'N/A'}"></td>
+                                <td th:text="${asistencia['diaSemana'] != null ? asistencia['diaSemana'] : 'N/A'}"></td>
+                                <td th:text="${asistencia['hora'] != null ? asistencia['hora'] : 'N/A'}"></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Tabla de asistencias con estado PRESENTE -->
+                <div th:if="${asistencias.?[estadoFalta == 'PRESENTE'].size() > 0}">
+                    <h5>Asistencias Marcadas como PRESENTE</h5>
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Estado</th>
+                                <th>Actividad</th>
+                                <th>Día</th>
+                                <th>Hora</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="asistencia : ${asistencias}" th:if="${asistencia['estadoFalta'] == 'PRESENTE'}">
+                                <td th:text="${asistencia['fechaRegistro'] != null ? #temporals.format(asistencia['fechaRegistro'], 'yyyy-MM-dd HH:mm:ss') : 'Sin registro'}"></td>
+                                <td th:text="${asistencia['estadoFalta'] != null ? asistencia['estadoFalta'] : 'Sin estado'}"></td>
+                                <td th:text="${asistencia['actividad'] != null ? asistencia['actividad'] : 'N/A'}"></td>
+                                <td th:text="${asistencia['diaSemana'] != null ? asistencia['diaSemana'] : 'N/A'}"></td>
+                                <td th:text="${asistencia['hora'] != null ? asistencia['hora'] : 'N/A'}"></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <a href="/portal/admin/busqueda-individual" class="btn btn-secondary mt-3">Regresar</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Justificación -->
+    <div class="modal fade" id="justificarModal" tabindex="-1" aria-labelledby="justificarModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form id="justificarForm" th:action="@{/portal/admin/justificar-asistencia/{id}(id=0)}" method="post">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="justificarModalLabel">Justificar Asistencia</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="comentario" class="form-label">Comentario</label>
+                            <textarea class="form-control" id="comentario" name="comentario" rows="3" placeholder="Escribe el motivo de la justificación"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Justificar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const justificarModal = document.getElementById('justificarModal');
+        justificarModal.addEventListener('show.bs.modal', function (event) {
+            const button = event.relatedTarget;
+            const idAsistencia = button.getAttribute('data-id-asistencia');
+            const form = justificarModal.querySelector('#justificarForm');
+            const actionUrl = `/portal/admin/justificar-asistencia/${idAsistencia}`;
+            form.setAttribute('action', actionUrl);
+        });
+    </script>
+</body>
+</html>

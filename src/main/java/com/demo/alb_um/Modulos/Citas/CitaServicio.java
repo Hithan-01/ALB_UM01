@@ -7,6 +7,7 @@ import com.demo.alb_um.Modulos.Alumno.UsuarioAlumnoRepositorio;
 
 import com.demo.alb_um.Modulos.Horario_servicio.Ent_HorarioServicio;
 import com.demo.alb_um.Modulos.Horario_servicio.HorarioServicioRepositorio;
+import com.demo.alb_um.Modulos.Servicio.Ent_Servicio;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -37,17 +38,23 @@ public class CitaServicio {
     @Autowired
     private UsuarioAlumnoRepositorio usuarioAlumnoRepositorio;
 
-   public void generarCita(Ent_UsuarioAdmin admin, Long idUsuarioAlumno, String estadoAsistencia) {
+public void generarCita(Ent_UsuarioAdmin admin, Long idUsuarioAlumno, String estadoAsistencia) {
     // Buscar al alumno
     Entidad_Usuario_Alumno usuarioAlumno = usuarioAlumnoRepositorio.findById(idUsuarioAlumno)
             .orElseThrow(() -> new IllegalArgumentException("Alumno no encontrado"));
+
+    // Obtener el servicio asociado al administrador
+    Ent_Servicio servicioAdmin = admin.getServicio();
+    if (servicioAdmin == null) {
+        throw new IllegalArgumentException("El administrador no tiene un servicio asociado.");
+    }
 
     // Crear un nuevo horario dinámico con la fecha y hora actuales
     Ent_HorarioServicio nuevoHorario = new Ent_HorarioServicio();
     nuevoHorario.setDiaSemana(LocalDate.now()); // Fecha actual
     nuevoHorario.setHora(LocalTime.now()); // Hora actual
     nuevoHorario.setDisponible(false); // No disponible para otras citas
-    nuevoHorario.setServicio(null); // Puedes asignar un servicio genérico o dejarlo nulo
+    nuevoHorario.setServicio(servicioAdmin); // Asignar el servicio del administrador
 
     // Guardar el horario en la base de datos
     nuevoHorario = horarioServicioRepositorio.save(nuevoHorario);
@@ -64,6 +71,7 @@ public class CitaServicio {
     // Guardar la cita en la base de datos
     citasRepositorio.save(nuevaCita);
 }
+
 
     
     public void generarCitaParaAntropometria(Long idUsuarioAlumno, Long horarioId, Ent_UsuarioAdmin admin) {
@@ -113,6 +121,9 @@ public class CitaServicio {
         return citasRepositorio.existsByUsuarioAlumno_IdUsuarioAlumnoAndHorarioServicio_Servicio_Nombre(idAlumno, "Antropometria");
     }
     
+    public boolean alumnoTieneCitaConfirmada(Long alumnoId, Long servicioId) {
+        return citasRepositorio.existsByUsuarioAlumno_IdUsuarioAlumnoAndHorarioServicio_Servicio_IdServicioAndVerificacionTrue(alumnoId, servicioId);
+    }
     
 
     

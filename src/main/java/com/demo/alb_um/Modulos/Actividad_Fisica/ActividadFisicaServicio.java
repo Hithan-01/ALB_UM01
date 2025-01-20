@@ -58,6 +58,10 @@ public class ActividadFisicaServicio {
                     .orElseThrow(() -> new EntityNotFoundException("Actividad no encontrada con el ID: " + id));
         }
 
+        public List<Entidad_ActividadFisica> obtenerTodas() {
+            return actividadFisicaRepositorio.findAll();
+        }
+
         public Entidad_ActividadFisica registrarActividad(RegistrarActividadDTO dto) {
             // Convertir hora de String a Time
             Time horaConvertida = Time.valueOf(dto.getHora() + ":00"); // Agregar ":00" si falta

@@ -36,9 +36,9 @@ public class Entidad_Usuario_Alumno {
     @JsonBackReference
     private Entidad_Usuario usuario;
 
-    @OneToMany(mappedBy = "usuarioAlumno", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "usuarioAlumno", cascade = CascadeType.ALL, fetch = FetchType.EAGER) // Cambiado a EAGER
     @JsonManagedReference
-    private Set<Ent_AsistenciaActividadFisica> asistencias;
+    private Set<Ent_AsistenciaActividadFisica> asistencias;    
 
     @OneToMany(mappedBy = "usuarioAlumno", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonManagedReference
