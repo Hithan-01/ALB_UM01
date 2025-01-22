@@ -65,7 +65,7 @@ import com.demo.alb_um.DTOs.RegistroCoachDTO;
 
 
 @Controller
-@RequestMapping("/portal/admin")
+@RequestMapping("/Alb_Um/portal/admin")
 @RequiredArgsConstructor
 public class AdminControlador {
 
