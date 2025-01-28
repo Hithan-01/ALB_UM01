@@ -59,6 +59,23 @@ public interface InscripcionTallerRepositorio extends JpaRepository<Ent_Inscripc
            nativeQuery = true)
     List<Object[]> findAllInscritosEnTaller(@Param("tallerId") Long tallerId);
 
+    // Alumnos inscritos en un taller
+    @Query("SELECT i FROM Ent_InscripcionTaller i WHERE i.taller.idTaller = :idTaller")
+    List<Ent_InscripcionTaller> findAllByTaller(Long idTaller);
 
+    // Alumnos con hora de llegada registrada (llegaron al taller)
+    @Query("SELECT i FROM Ent_InscripcionTaller i WHERE i.taller.idTaller = :idTaller AND i.horaLlegada IS NOT NULL")
+    List<Ent_InscripcionTaller> findLlegaronByTaller(Long idTaller);
+
+    // Alumnos que no llegaron al taller (sin hora de llegada)
+    @Query("SELECT i FROM Ent_InscripcionTaller i WHERE i.taller.idTaller = :idTaller AND i.horaLlegada IS NULL")
+    List<Ent_InscripcionTaller> findNoLlegaronByTaller(Long idTaller);
     
+    @Query("SELECT i FROM Ent_InscripcionTaller i " +
+    "JOIN FETCH i.usuarioAlumno ua " +
+    "JOIN FETCH ua.usuario u " +
+    "JOIN FETCH ua.carrera c " +
+    "JOIN FETCH c.facultad " +
+    "WHERE i.taller.idTaller = :idTaller")
+List<Ent_InscripcionTaller> findAllWithAlumnoDetailsByTallerId(Long idTaller);
 }

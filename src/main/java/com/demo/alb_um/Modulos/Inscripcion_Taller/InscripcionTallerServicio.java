@@ -14,11 +14,13 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import com.demo.alb_um.DTOs.AlumnoTallerDTO;
 import com.demo.alb_um.DTOs.TallerDTO;
 import com.demo.alb_um.DTOs.TallerInscripcionDTO;
 import com.demo.alb_um.Modulos.Taller.Ent_Taller;
 import com.demo.alb_um.Modulos.Taller.Ent_Taller.EstadoTaller;
 import com.demo.alb_um.Modulos.Taller.TallerRepositorio;
+import com.demo.alb_um.Modulos.Usuario.Entidad_Usuario;
 
 import jakarta.transaction.Transactional;
 
@@ -639,5 +641,99 @@ public boolean estaInscritoEnTaller(Long idAlumno, Long idTaller) {
         return tallerRepository.findAll();
     }
     
+    public Map<String, List<AlumnoTallerDTO>> getAlumnosPorEstado(Long idTaller, Ent_Taller.EstadoTaller estado) {
+        Map<String, List<AlumnoTallerDTO>> resultado = new HashMap<>();
+    
+        // Obtener todas las inscripciones con detalles
+        List<Ent_InscripcionTaller> inscripciones = RepositorioInscripcionTaller.findAllWithAlumnoDetailsByTallerId(idTaller);
+    
+        // Mapear las inscripciones a DTOs
+        List<AlumnoTallerDTO> alumnosInscritos = inscripciones.stream()
+                .map(this::mapToAlumnoTallerDTO)
+                .collect(Collectors.toList());
+        resultado.put("inscritos", alumnosInscritos);
+    
+        // Estado REGISTRO_ABIERTO: Mostrar alumnos que tienen hora de llegada
+        if (estado == Ent_Taller.EstadoTaller.REGISTRO_ABIERTO) {
+            List<AlumnoTallerDTO> alumnosLlegaron = inscripciones.stream()
+                    .filter(i -> i.getHoraLlegada() != null)
+                    .map(this::mapToAlumnoTallerDTO)
+                    .collect(Collectors.toList());
+            resultado.put("llegaron", alumnosLlegaron);
+        }
+    
+        // Estado EN_CURSO: Alumnos que llegaron y los que no llegaron
+        if (estado == Ent_Taller.EstadoTaller.EN_CURSO) {
+            // Filtrar los alumnos que llegaron (tienen hora de llegada)
+            List<AlumnoTallerDTO> alumnosLlegaron = inscripciones.stream()
+                    .filter(i -> i.getHoraLlegada() != null)
+                    .map(this::mapToAlumnoTallerDTO)
+                    .collect(Collectors.toList());
+            resultado.put("llegaron", alumnosLlegaron);
+    
+            // Filtrar los alumnos que no llegaron (sin hora de llegada)
+            List<AlumnoTallerDTO> alumnosNoLlegaron = inscripciones.stream()
+                    .filter(i -> i.getHoraLlegada() == null)
+                    .map(this::mapToAlumnoTallerDTO)
+                    .collect(Collectors.toList());
+            resultado.put("noLlegaron", alumnosNoLlegaron);
+        }
+    
+        // Estado CERRADO o FINALIZADO: Alumnos con asistencia confirmada
+        if (estado == Ent_Taller.EstadoTaller.CERRADO || estado == Ent_Taller.EstadoTaller.FINALIZADO) {
+            List<AlumnoTallerDTO> alumnosConAsistenciaConfirmada = inscripciones.stream()
+                    .filter(i -> "ASISTIO".equalsIgnoreCase(i.getEstadoAsistencia()))
+                    .map(this::mapToAlumnoTallerDTO)
+                    .collect(Collectors.toList());
+            resultado.put("asistieron", alumnosConAsistenciaConfirmada);
+        }
+    
+        return resultado;
+    }
+    
+    
+    
+ 
+// Método auxiliar para mapear la inscripción al DTO
+private AlumnoTallerDTO mapToAlumnoTallerDTO(Ent_InscripcionTaller inscripcion) {
+    Entidad_Usuario_Alumno alumno = inscripcion.getUsuarioAlumno();
+    Entidad_Usuario usuario = alumno.getUsuario();
+
+    Long idInscripcion = inscripcion.getIdInscripcion();
+    String nombreCompleto = usuario.getNombre() + " " + usuario.getApellido();
+    String userName = usuario.getUserName();
+    String carrera = (alumno.getCarrera() != null) ? alumno.getCarrera().getNombre() : "Sin Carrera";
+    String facultad = (alumno.getCarrera() != null && alumno.getCarrera().getFacultad() != null)
+            ? alumno.getCarrera().getFacultad().getNombre()
+            : "Sin Facultad";
+
+    // Mapear las nuevas propiedades
+    LocalTime horaLlegada = inscripcion.getHoraLlegada();
+    LocalTime horaSalida = inscripcion.getHoraSalida();
+    String estadoAsistencia = inscripcion.getEstadoAsistencia();
+
+    AlumnoTallerDTO dto = new AlumnoTallerDTO();
+    dto.setIdInscripcion(idInscripcion);
+    dto.setNombreCompleto(nombreCompleto);
+    dto.setUserName(userName);
+    dto.setCarrera(carrera);
+    dto.setFacultad(facultad);
+    dto.setHoraLlegada(horaLlegada);
+    dto.setHoraSalida(horaSalida);
+    dto.setEstadoAsistencia(estadoAsistencia);
+
+    return dto;
+}
+
+    
+
+    // Servicio para obtener la lista de alumnos con detalles
+public List<AlumnoTallerDTO> getAlumnosConDetalles(Long idTaller) {
+    return RepositorioInscripcionTaller.findAllWithAlumnoDetailsByTallerId(idTaller)
+            .stream()
+            .map(this::mapToAlumnoTallerDTO) // Usar el método auxiliar para mapear
+            .collect(Collectors.toList());
+}
+
     
 }

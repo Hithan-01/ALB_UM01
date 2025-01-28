@@ -8,18 +8,23 @@
     <style>
         body {
             background: linear-gradient(135deg, #c1dfc4, #dee2e6); /* Fondo más suave */
-            height: 100vh;
+            min-height: 100vh;
         }
+
+        /* Navbar estilizado */
         .navbar {
-            background-color: #80b918; /* Verde más suave */
+            background: linear-gradient(45deg, #343a40, #6c757d);
         }
-        .navbar-brand {
+
+        .navbar-brand, .nav-link {
             color: #fff;
             font-weight: bold;
         }
-        .navbar-brand:hover {
-            color: #d9f99d; /* Cambio de color al pasar el mouse */
+
+        .navbar-brand:hover, .nav-link:hover {
+            color: #000000;
         }
+
         .form-container {
             background-color: #fff;
             border-radius: 8px;
@@ -28,6 +33,7 @@
             max-width: 600px;
             margin: 30px auto;
         }
+
         .form-container h1 {
             font-size: 1.8rem;
             margin-bottom: 20px;
@@ -39,13 +45,21 @@
     <!-- Navbar -->
     <nav class="navbar navbar-expand-lg">
         <div class="container-fluid">
-            <a class="navbar-brand" href="/portal/inicio">Administración - Registrar Alumno</a>
-            <div class="d-flex">
-                <a href="/logout" class="btn btn-outline-light">Log Out</a>
+            <a class="navbar-brand" href="/Alb_Um/portal/inicio">ÁLBUM UM</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item"><a class="nav-link" href="/Alb_Um/portal/admin/registrar-alumno">Registrar Alumno</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/Alb_Um/portal/admin/crear-actividad">Registrar Actividad</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/Alb_Um/portal/admin/registrar-coach">Registrar Coach</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/Alb_Um/portal/admin/listar-actividades">Actividad Física</a></li>
+                </ul>
+                <a href="/Alb_Um/logout" class="btn btn-outline-light">Cerrar Sesión</a>
             </div>
         </div>
     </nav>
-
     <!-- Formulario -->
     <div class="form-container">
         <h1>Registrar Alumno</h1>

@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Alumnos del Taller</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #f7f9fc, #eaeff5);
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            margin-top: 40px;
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        h1, h3 {
+            color: #333;
+        }
+        .table th {
+            text-align: center;
+            background-color: #e3f2fd;
+        }
+        .table td {
+            text-align: center;
+            vertical-align: middle;
+        }
+        footer {
+            margin-top: 40px;
+            text-align: center;
+            padding: 10px 0;
+            background-color: #343a40;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 th:text="'Alumnos del Taller: ' + ${taller.nombre}"></h1>
+        <p><strong>Estado del Taller:</strong> <span th:text="${taller.estado}"></span></p>
+
+        <!-- Alumnos Inscritos -->
+        <div th:if="${taller.estado.toString() == 'PROGRAMADO' || taller.estado.toString() == 'EN_CURSO' || taller.estado.toString() == 'CERRADO' || taller.estado.toString() == 'FINALIZADO'}">
+            <h3>Alumnos Inscritos</h3>
+            <table class="table table-bordered table-striped">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nombre Completo</th>
+                        <th>Username</th>
+                        <th>Carrera</th>
+                        <th>Facultad</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="alumno : ${alumnosInscritos}">
+                        <td th:text="${alumno.idInscripcion}"></td>
+                        <td th:text="${alumno.nombreCompleto}"></td>
+                        <td th:text="${alumno.userName}"></td>
+                        <td th:text="${alumno.carrera}"></td>
+                        <td th:text="${alumno.facultad}"></td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(alumnosInscritos)}">
+                        <td colspan="5" class="text-center">No hay alumnos inscritos.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Alumnos que Llegaron -->
+        <div th:if="${taller.estado.toString() == 'EN_CURSO' || taller.estado.toString() == 'REGISTRO_ABIERTO'}">
+            <h3>Alumnos que Llegaron</h3>
+            <table class="table table-bordered table-striped">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nombre Completo</th>
+                        <th>Hora de Llegada</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="alumno : ${alumnosLlegaron}">
+                        <td th:text="${alumno.idInscripcion}"></td>
+                        <td th:text="${alumno.nombreCompleto}"></td>
+                        <td th:text="${#temporals.format(alumno.horaLlegada, 'HH:mm')}"></td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(alumnosLlegaron)}">
+                        <td colspan="3" class="text-center">No hay alumnos que hayan llegado.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Alumnos que No Llegaron -->
+        <div th:if="${taller.estado.toString() == 'EN_CURSO'}">
+            <h3>Alumnos que No Llegaron</h3>
+            <table class="table table-bordered table-striped">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nombre Completo</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="alumno : ${alumnosNoLlegaron}">
+                        <td th:text="${alumno.idInscripcion}"></td>
+                        <td th:text="${alumno.nombreCompleto}"></td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(alumnosNoLlegaron)}">
+                        <td colspan="2" class="text-center">No hay alumnos que no hayan llegado.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Alumnos con Asistencia Confirmada -->
+        <div th:if="${taller.estado.toString() == 'CERRADO' || taller.estado.toString() == 'FINALIZADO'}">
+            <h3>Alumnos con Asistencia Confirmada</h3>
+            <table class="table table-bordered table-striped">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nombre Completo</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="alumno : ${alumnosAsistieron}">
+                        <td th:text="${alumno.idInscripcion}"></td>
+                        <td th:text="${alumno.nombreCompleto}"></td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(alumnosAsistieron)}">
+                        <td colspan="2" class="text-center">No hay alumnos con asistencia confirmada.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <a th:href="@{/portal/admin/talleres}" class="btn btn-secondary">Volver a la Lista de Talleres</a>
+    </div>
+
+    <footer>
+        <p>© 2025 Universidad Saludable</p>
+    </footer>
+</body>
+</html>

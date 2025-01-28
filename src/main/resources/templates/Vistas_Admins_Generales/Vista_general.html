@@ -1,66 +1,108 @@
 <!DOCTYPE html>
-<html xmlns="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>Admin - Detalles</title>
+    <title>Admin - Búsqueda de Alumnos</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
-          integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #c1dfc4, #dee2e6);
+            font-family: Arial, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .navbar {
+            background: linear-gradient(45deg, #343a40, #6c757d);
+        }
+        .navbar-brand, .nav-link {
+            color: white !important;
+            font-weight: bold;
+        }
+        .navbar-brand:hover, .nav-link:hover {
+            color: #d4d4d4 !important;
+        }
+        .card {
+            border-radius: 8px;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .btn {
+            border-radius: 20px;
+        }
+        footer {
+            margin-top: auto;
+            text-align: center;
+            padding: 10px 0;
+            background-color: #343a40;
+            color: white;
+        }
+    </style>
 </head>
 <body>
-    <header>
-        <div class="header-container">
-            <h1>ALBUM</h1>
-            <nav>
-                <ul class="nav">
-                    <li class="nav-item"><a class="nav-link text-white" href="#">Inicio</a></li>
-                    <li class="nav-item"><a class="nav-link text-white" href="/alumno/servicios">Servicios</a></li>
-                    <li class="nav-item"><a class="nav-link text-white" href="/alumno/talleres">Talleres</a></li>
-                </ul>
-            </nav>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/Alb_Um/portal/inicio">Administración</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <a href="/Alb_Um/logout" class="btn btn-outline-light ms-auto">Cerrar Sesión</a>
+            </div>
         </div>
-    </header>
+    </nav>
 
-    <div class="content-container mt-5">
-        <!-- Mostrar mensajes de éxito o error -->
+    <!-- Contenido principal -->
+    <div class="container mt-5">
+        <!-- Información del Administrador -->
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5>Información del Administrador</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Nombre:</strong> <span th:text="${admin.nombreCompleto}"></span></p>
+                <p><strong>Servicio Asignado:</strong> 
+                    <span th:if="${admin.servicio != null}" th:text="${admin.servicio.nombre}"></span>
+                    <span th:if="${admin.servicio == null}">Sin servicio asignado</span>
+                </p>
+            </div>
+        </div>
+
+        <!-- Mensajes de retroalimentación -->
         <div th:if="${mensajeExito}" class="alert alert-success">
             <p th:text="${mensajeExito}"></p>
         </div>
         <div th:if="${mensajeError}" class="alert alert-danger">
             <p th:text="${mensajeError}"></p>
         </div>
-
-        <!-- Información del Administrador -->
-        <div class="admin-info">
-            <h2>Información del Administrador</h2>
-            <div class="admin-details">
-                <div th:if="${admin != null}">
-                    <p th:text="${admin.nombreCompleto}">Nombre Completo</p>
-                    <p th:if="${admin.servicio != null}">
-                        <strong>Servicio:</strong> <span th:text="${admin.servicio.nombre}"></span>
-                    </p>
-                    <p th:if="${admin.servicio == null}">
-                        <strong>Servicio:</strong> No disponible
-                    </p>
-                </div>
-                <div th:if="${admin == null}">
-                    <p>No se encontró la información del administrador.</p>
-                </div>
-            </div>
+        <div th:if="${mensajeAdvertencia}" class="alert alert-warning">
+            <p th:text="${mensajeAdvertencia}"></p>
         </div>
 
         <!-- Búsqueda de Alumnos -->
-        <div class="actions mt-4">
-            <form th:action="@{/portal/admin/general/buscarAlumno}" method="get" class="mt-4">
-                <label for="search">Buscar Alumno (Username):</label>
-                <input type="text" id="search" name="search" class="form-control" placeholder="Username" required>
-                <button type="submit" class="btn btn-primary mt-3">Buscar</button>
-                <div th:if="${error}" class="alert alert-danger mt-3">
-                    <p th:text="${error}"></p>
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h5>Búsqueda de Alumnos</h5>
+            </div>
+            <div class="card-body">
+                <form th:action="@{/portal/admin/general/buscarAlumno}" method="get">
+                    <label for="search" class="form-label">Buscar Alumno (Username):</label>
+                    <input type="text" id="search" name="search" class="form-control" placeholder="Username" required>
+                    <button type="submit" class="btn btn-primary mt-3">Buscar</button>
+                </form>
+                <!-- Mensaje de "Alumno no encontrado" -->
+                <div th:if="${mensajeError}" class="alert alert-danger mt-3 text-center">
+                    <i class="fas fa-exclamation-circle"></i> <span th:text="${mensajeError}"></span>
                 </div>
-            </form>
+            </div>
         </div>
     </div>
+
+    <footer>
+        <p>© 2025 Universidad Saludable</p>
+    </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>

@@ -72,7 +72,7 @@ public String mostrarServicios(Model model, Principal principal) {
     // Pasamos esta información al modelo para la vista
     model.addAttribute("tieneCitaAntropometria", tieneCitaAntropometria);
     
-    return "servicios"; // Vista de servicios generales
+    return "/Vistas_Alumno/Ver_Servicios"; // Vista de servicios generales
 }
 
 
@@ -90,7 +90,7 @@ public String mostrarTalleres(Model model, Principal principal) {
     });
 
     model.addAttribute("talleres", talleresDisponibles);
-    return "talleres";
+    return "/Vistas_Alumno/Ver_Talleres";
 }
 
 
@@ -115,7 +115,7 @@ public String inscribirTaller(@RequestParam("idTaller") Long idTaller, Principal
         model.addAttribute("error", "Ya estás inscrito en este taller.");
         List<TallerDTO> talleresDisponibles = inscripcionTallerServicio.listarTalleresDisponibles();
         model.addAttribute("talleres", talleresDisponibles);
-        return "talleres";  // Regresar a la lista de talleres
+        return "/Vistas_Alumno/Ver_Talleres";  // Regresar a la lista de talleres
     }
     
 

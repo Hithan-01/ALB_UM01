@@ -41,7 +41,7 @@ public class CoachControlador {
     public String mostrarListaAlumnos(@PathVariable Long idActividadFisica, Model model) {
         ActividadFisicaDTO actividad = coachActividadServicio.obtenerActividadPorId(idActividadFisica);
         model.addAttribute("actividad", actividad);
-        return "listaAlumnos"; 
+        return "/Vistas_Coach/Lista_Alumnos"; 
     }
 
   
@@ -54,7 +54,7 @@ public String iniciarPaseLista(@PathVariable Long idActividadFisica, Model model
         model.addAttribute("actividad", paseListaInfo.getActividad());
         model.addAttribute("alumnos", paseListaInfo.getAlumnos());
 
-        return "paseLista"; 
+        return "/Vistas_Coach/Pase_Lista"; 
     } catch (RuntimeException e) {
         // Manejar la excepción y redirigir con un mensaje de error
         redirectAttributes.addFlashAttribute("error", e.getMessage());

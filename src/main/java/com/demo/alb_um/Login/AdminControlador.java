@@ -45,7 +45,6 @@ import com.demo.alb_um.Modulos.Coach.CoachActividadServicio;
 import com.demo.alb_um.Modulos.Coach.Ent_CoachActividad;
 import com.demo.alb_um.Modulos.Facultad.Entidad_facultad;
 import com.demo.alb_um.Modulos.Facultad.FacultadServicio;
-import com.demo.alb_um.Modulos.Inscripcion_Taller.Ent_InscripcionTaller;
 import com.demo.alb_um.Modulos.Inscripcion_Taller.InscripcionTallerServicio;
 import com.demo.alb_um.Modulos.Manager.ManagerServicio;
 import com.demo.alb_um.Modulos.Servicio.Ent_Servicio;
@@ -57,6 +56,7 @@ import lombok.RequiredArgsConstructor;
 import com.demo.alb_um.DTOs.ActividadFisicaDTO;
 import com.demo.alb_um.DTOs.AlumnoBusquedaDTO;
 import com.demo.alb_um.DTOs.AlumnoDTO;
+import com.demo.alb_um.DTOs.AlumnoTallerDTO;
 import com.demo.alb_um.DTOs.BusquedaFaltas;
 import com.demo.alb_um.DTOs.CoachDTO;
 import com.demo.alb_um.DTOs.RegistrarActividadDTO;
@@ -65,7 +65,7 @@ import com.demo.alb_um.DTOs.RegistroCoachDTO;
 
 
 @Controller
-@RequestMapping("/Alb_Um/portal/admin")
+@RequestMapping("/portal/admin")
 @RequiredArgsConstructor
 public class AdminControlador {
 
@@ -100,7 +100,7 @@ public String buscarAlumno(@RequestParam("search") String search, Model model, P
     // Validar que el administrador exista y no sea de Antropometría
     if (adminOpt.isEmpty() || esAdminAntropometria(adminOpt.get())) {
         model.addAttribute("mensajeError", "No tienes permiso para realizar esta acción.");
-        return "admin"; // Mantente en la vista "admin.html"
+        return "redirect:/portal/inicio"; 
     }
 
     // Obtener el servicio del administrador
@@ -113,7 +113,7 @@ public String buscarAlumno(@RequestParam("search") String search, Model model, P
     // Validar si se encontró el alumno
     if (alumnoOpt.isEmpty()) {
         model.addAttribute("mensajeError", "Alumno no encontrado.");
-        return "admin"; // Mantente en la vista "admin.html"
+        return "redirect:/portal/inicio"; 
     }
 
     AlumnoDTO alumno = alumnoOpt.get();
@@ -261,39 +261,6 @@ public String guardarDatosAntroYValidarCita(
         return "redirect:/portal/inicio";
     }
     
-
-    @GetMapping("/{id}/pasarLista")
-    public String mostrarPaseLista(@PathVariable Long id, Model model) {
-        // Obtener la lista de inscripciones para este taller
-        List<Ent_InscripcionTaller> inscripciones = 
-            inscripcionTallerServicio.obtenerInscripcionesPorTaller(id);
-        
-        model.addAttribute("tallerId", id);
-        model.addAttribute("inscripciones", inscripciones);
-        return "pasarListaTaller";
-    }
-
-    @PostMapping("/taller/{id}/registrarAsistencia")
-    public String registrarAsistencia(@PathVariable Long id, 
-                                    @RequestParam List<Long> asistentes, 
-                                    RedirectAttributes redirectAttributes) {
-        try {
-            inscripcionTallerServicio.registrarAsistenciaTaller(id, asistentes);
-            redirectAttributes.addFlashAttribute("mensaje", "Asistencia registrada exitosamente");
-        } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("error", "Error al registrar la asistencia");
-        }
-        return "redirect:/portal/admin";
-    }
-
-     @PostMapping("/{id}/registrarTag")
-    @ResponseBody
-    public Map<String, Object> registrarTag(
-            @PathVariable Long id,
-            @RequestParam String tagCredencial) {
-        return inscripcionTallerServicio.registrarAsistenciaPorTag(id, tagCredencial);
-    }
-    
     @PostMapping("/taller/{id}/registrarLlegada")
     @ResponseBody
     public Map<String, Object> registrarLlegada(
@@ -327,11 +294,11 @@ public String mostrarFormularioNuevoTaller(Model model, Principal principal, Red
     Optional<Ent_UsuarioAdmin> adminOpt = usuarioAdminRepositorio.findByUsuario_UserName(principal.getName());
     if (adminOpt.isEmpty() || !esAdminDeTalleres(adminOpt.get())) {
         redirectAttributes.addFlashAttribute("error", "No tienes permisos para crear talleres.");
-        return "redirect:/portal/admin";
+        return "redirect:/Alb_Um/portal/inicio";
     }
 
     model.addAttribute("taller", new Ent_Taller());
-    return "crearTaller"; // Vista Thymeleaf para crear talleres
+    return "/Vistas_Admins_Talleres/Crear_Taller"; // Vista Thymeleaf para crear talleres
 }
 
 private boolean esAdminDeTalleres(Ent_UsuarioAdmin admin) {
@@ -368,12 +335,12 @@ public String listarTalleres(Model model, Principal principal, RedirectAttribute
     Optional<Ent_UsuarioAdmin> adminOpt = usuarioAdminRepositorio.findByUsuario_UserName(principal.getName());
     if (adminOpt.isEmpty() || !esAdminDeTalleres(adminOpt.get())) {
         redirectAttributes.addFlashAttribute("error", "No tienes permisos para gestionar talleres.");
-        return "redirect:/portal/admin";
+        return "redirect:/portal/inicio";
     }
 
     List<Ent_Taller> talleres = inscripcionTallerServicio.obtenerTodosTalleres();
     model.addAttribute("talleres", talleres);
-    return "listaTalleres"; // Vista Thymeleaf para mostrar talleres
+    return "/Vistas_Admins_Talleres/Lista_De_Talleres"; // Vista Thymeleaf para mostrar talleres
 }
 
 @GetMapping("/talleres/{id}/detalles")
@@ -381,7 +348,7 @@ public String verDetallesTaller(@PathVariable Long id, Model model, RedirectAttr
     Optional<Ent_Taller> tallerOpt = inscripcionTallerServicio.obtenerTallerPorId(id);
     if (tallerOpt.isPresent()) {
         model.addAttribute("taller", tallerOpt.get());
-        return "detallesTaller";
+        return "/Vistas_Admins_Talleres/Detalles_Taller";
     } else {
         model.addAttribute("error", "El taller no fue encontrado.");
         return "error";
@@ -398,7 +365,7 @@ public String mostrarFormularioEditar(@PathVariable Long id, Model model, Redire
     }
 
     model.addAttribute("taller", tallerOpt.get()); // Objeto con idTaller incluido
-    return "editarTaller"; // Vista para editar talleres
+    return "/Vistas_Admins_Talleres/Editar_Taller"; // Vista para editar talleres
 }
 
 
@@ -426,6 +393,48 @@ public String eliminarTaller(@PathVariable Long id, RedirectAttributes redirectA
     }
     return "redirect:/portal/admin/talleres";
 }
+
+@GetMapping("/talleres/{id}/alumnos")
+public String verAlumnos(@PathVariable Long id, Model model) {
+    // Obtener el taller por ID
+    Ent_Taller taller = inscripcionTallerServicio.obtenerTallerPorId(id)
+            .orElseThrow(() -> new IllegalArgumentException("El taller no existe."));
+
+    // Obtener las listas de alumnos por estado
+    Map<String, List<AlumnoTallerDTO>> alumnosPorEstado = inscripcionTallerServicio.getAlumnosPorEstado(id, taller.getEstado());
+
+    // Agregar datos al modelo
+    model.addAttribute("taller", taller);
+
+    // Manejar casos según el estado del taller
+    switch (taller.getEstado()) {
+        case PROGRAMADO:
+            model.addAttribute("alumnosInscritos", alumnosPorEstado.get("inscritos"));
+            break;
+
+        case REGISTRO_ABIERTO:
+            model.addAttribute("alumnosLlegaron", alumnosPorEstado.get("llegaron"));
+            break;
+
+        case EN_CURSO:
+            model.addAttribute("alumnosLlegaron", alumnosPorEstado.get("llegaron"));
+            model.addAttribute("alumnosNoLlegaron", alumnosPorEstado.get("noLlegaron"));
+            break;
+
+        case CERRADO:
+        case FINALIZADO:
+            model.addAttribute("alumnosInscritos", alumnosPorEstado.get("inscritos"));
+            model.addAttribute("alumnosAsistieron", alumnosPorEstado.get("asistieron"));
+            break;
+
+        default:
+            throw new IllegalStateException("Estado del taller no reconocido: " + taller.getEstado());
+    }
+
+    return "/Vistas_Admins_Talleres/Lista_Alumnos"; // Vista correspondiente
+}
+
+
 
      // Manejador de errores para este controlador
     @ExceptionHandler(Exception.class)
@@ -493,7 +502,7 @@ public String eliminarTaller(@PathVariable Long id, RedirectAttributes redirectA
             return "/Vistas_Admins_Aptitud/Resultados_Busqueda_Indv";
         } else {
             model.addAttribute("error", "No se encontró al alumno.");
-            return "admin";
+            return "redirect:/portal/inicio";
         }
     }
     
@@ -882,9 +891,10 @@ public String mostrarFormularioEdicion(@PathVariable Long id, Model model) {
     }
 
     @PostMapping("/registrar-coach")
-    public String registrarCoach(RegistroCoachDTO registroCoach) {
+    public String registrarCoach(RegistroCoachDTO registroCoach, Model model) {
         managerServicio.registrarCoach(registroCoach);
-        return "redirect:/portal/admin/usuarios?success";
+        model.addAttribute("registroCoach", new RegistroCoachDTO());
+        return "/Vistas_Admins_Aptitud/Formulario_Registro_Coach";
     }
 
         @GetMapping("/cambiar-coach/{idActividad}")

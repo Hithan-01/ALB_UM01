@@ -66,7 +66,7 @@ public String cargarVistaCoach(String userName, CoachActividadServicio coachActi
         List<ActividadFisicaDTO> actividades = coachActividadServicio.obtenerActividadesPorCoach(coach.getIdUsuario());
         model.addAttribute("actividades", actividades);
 
-        return "coach"; 
+        return "/Vistas_Coach/Vista_General"; 
     }
     return "error"; 
 }
@@ -106,7 +106,7 @@ public String cargarVistaAlumno(
         boolean noPendientes = talleresPendientes.isEmpty() && citasPendientes.isEmpty();
         model.addAttribute("noPendientes", noPendientes);
 
-        return "alumno";
+        return "/Vistas_Alumno/Vista_General";
     }
 
     model.addAttribute("mensajeError", "No se encontró información para el alumno.");
@@ -143,36 +143,34 @@ public String cargarVistaAdmin(String userName, UsuarioAdminServicio usuarioAdmi
                 // Redirigir a la vista específica de Antropometría
                 return "antropometria";
             
-            case "Talleres":
+                case "Talleres":
                 try {
                     // Obtener talleres del día
                     List<TallerDTO> talleresDelDia = inscripcionTallerServicio.obtenerTalleresDelDia();
-
-                    // Loguear los talleres encontrados para depuración
-                    talleresDelDia.forEach(taller -> System.out.println(String.format(
-                        "Taller: %s, Fecha: %s, Hora: %s, Estado: %s",
-                        taller.getNombre(),
-                        taller.getFecha(),
-                        taller.getHora(),
-                        taller.getEstado()
-                    )));
-
-                    // Filtrar talleres en curso
-                    List<TallerDTO> talleresEnCurso = talleresDelDia.stream()
-                        .filter(t -> t.getEstado() == EstadoTaller.EN_CURSO)
-                        .collect(Collectors.toList());
-
-                    // Añadir datos al modelo
-                    model.addAttribute("talleresDelDia", talleresDelDia);
-                    model.addAttribute("talleresEnCurso", talleresEnCurso);
+            
+                    if (talleresDelDia.isEmpty()) {
+                        model.addAttribute("mensajeInfo", "No hay talleres programados para hoy.");
+                    } else {
+                        // Filtrar talleres en curso
+                        List<TallerDTO> talleresEnCurso = talleresDelDia.stream()
+                            .filter(t -> t.getEstado() == EstadoTaller.EN_CURSO)
+                            .collect(Collectors.toList());
+            
+                        // Añadir talleres al modelo
+                        model.addAttribute("talleresDelDia", talleresDelDia);
+                        model.addAttribute("talleresEnCurso", talleresEnCurso);
+                    }
+            
+                    // Añadir la hora actual para referencia
                     model.addAttribute("horaActual", LocalDateTime.now());
                 } catch (Exception e) {
                     System.err.println("Error al cargar talleres: " + e.getMessage());
                     e.printStackTrace();
+                    model.addAttribute("error", "Error al cargar los talleres. Por favor, intente más tarde.");
                 }
-
+            
                 // Redirigir a la vista específica de Talleres
-                return "talleres";
+                return "/Vistas_Admins_Talleres/Vista_General";
 
             case "Aptitud Fisica":
                 // Cargar actividades físicas

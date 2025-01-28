@@ -2,51 +2,109 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Resultados de la Búsqueda de Alumnos</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #c1dfc4, #dee2e6);
+            font-family: Arial, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .navbar {
+            background: linear-gradient(45deg, #343a40, #6c757d);
+        }
+        .navbar-brand, .nav-link {
+            color: white !important;
+            font-weight: bold;
+        }
+        .navbar-brand:hover, .nav-link:hover {
+            color: #d4d4d4 !important;
+        }
+        .btn {
+            border-radius: 20px;
+        }
+        footer {
+            margin-top: auto;
+            text-align: center;
+            padding: 10px 0;
+            background-color: #343a40;
+            color: white;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        table {
+            margin-top: 20px;
+        }
+    </style>
 </head>
 <body>
-<!-- Tabla de Resultados -->
-<div class="container mt-5">
-    <h1 class="mb-4">Resultados de la Búsqueda de Alumnos</h1>
-    <table class="table table-striped">
-        <thead>
-            <tr>
-                <th>Nombre Completo</th>
-                <th>Carrera</th>
-                <th>Facultad</th>
-                <th>Semestre</th>
-                <th>Número de Faltas</th>
-                <th>Número de Asistencias</th>
-                <th>Número de Justificaciones</th>
-                <th>Acciones</th>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/Alb_Um/portal/inicio">Administración - Resultados de Búsqueda</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item"><a class="nav-link" href="/Alb_Um/portal/admin/listar-actividades">Actividades</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/Alb_Um/portal/admin/busqueda-avanzada">Búsqueda Avanzada</a></li>
+                </ul>
+                <a href="/Alb_Um/logout" class="btn btn-outline-light">Cerrar Sesión</a>
+            </div>
+        </div>
+    </nav>
 
-            </tr>
-        </thead>
-        <tbody>
-            <tr th:each="alumno : ${resultados}">
-                <td th:text="${alumno.nombreCompleto}"></td> <!-- Nombre Completo -->
-                <td th:text="${alumno.carrera}"></td> <!-- Carrera -->
-                <td th:text="${alumno.facultad}"></td> <!-- Facultad -->
-                <td th:text="${alumno.semestre}"></td> <!-- Semestre -->
-                <td th:text="${alumno.contadorFaltas}"></td>
-                <td th:text="${alumno.contadorAsistencias}"></td>
-                <td th:text="${alumno.contadorJustificaciones}"></td>                
-                <td th:if="${alumno.idActividadFisica != null}">
-                    <form th:action="@{/portal/admin/ver-detalles-asistencias/{idAlumno}(idAlumno=${alumno.idAlumno})}" method="get">
-                        <button type="submit" class="btn btn-primary">Ver detalles de asistencia</button>
-                    </form>
-                    
-                </td>
-                <td th:if="${alumno.idActividadFisica == null}">
-                    Sin actividad asignada
-                </td>
-                
-            </tr>
-        </tbody>
-    </table>
-    <a href="/portal/admin/busqueda-avanzada" class="btn btn-secondary">Nueva Búsqueda</a>
-</div>
+    <!-- Tabla de Resultados -->
+    <div class="container mt-5">
+        <h1 class="mb-4">Resultados de la Búsqueda de Alumnos</h1>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Nombre Completo</th>
+                    <th>Carrera</th>
+                    <th>Facultad</th>
+                    <th>Semestre</th>
+                    <th>Número de Faltas</th>
+                    <th>Número de Asistencias</th>
+                    <th>Número de Justificaciones</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="alumno : ${resultados}">
+                    <td th:text="${alumno.nombreCompleto}"></td> <!-- Nombre Completo -->
+                    <td th:text="${alumno.carrera}"></td> <!-- Carrera -->
+                    <td th:text="${alumno.facultad}"></td> <!-- Facultad -->
+                    <td th:text="${alumno.semestre}"></td> <!-- Semestre -->
+                    <td th:text="${alumno.contadorFaltas}"></td>
+                    <td th:text="${alumno.contadorAsistencias}"></td>
+                    <td th:text="${alumno.contadorJustificaciones}"></td>
+                    <td>
+                        <div th:if="${alumno.idActividadFisica != null}">
+                            <form th:action="@{/portal/admin/ver-detalles-asistencias/{idAlumno}(idAlumno=${alumno.idAlumno})}" method="get">
+                                <button type="submit" class="btn btn-primary btn-sm">Ver detalles de asistencia</button>
+                            </form>
+                        </div>
+                        <span th:if="${alumno.idActividadFisica == null}">Sin actividad asignada</span>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        <a href="/Alb_Um/portal/inicio" class="btn btn-secondary mt-3">Nueva Búsqueda</a>
+    </div>
 
+    <footer>
+        <p>© 2025 Universidad Saludable</p>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

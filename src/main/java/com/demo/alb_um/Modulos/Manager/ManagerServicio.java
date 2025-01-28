@@ -3,6 +3,8 @@ package com.demo.alb_um.Modulos.Manager;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.demo.alb_um.DTOs.ManagerDTO;
@@ -32,9 +34,11 @@ import jakarta.transaction.Transactional;
 public class ManagerServicio {
 
     private final UsuarioRepositorio usuarioRepositorio;
+    private final PasswordEncoder passwordEncoder;
 
-    public ManagerServicio(UsuarioRepositorio usuarioRepositorio) {
+    public ManagerServicio(UsuarioRepositorio usuarioRepositorio, PasswordEncoder passwordEncoder ) {
         this.usuarioRepositorio = usuarioRepositorio;
+        this.passwordEncoder = passwordEncoder;
     }
 
     public ManagerDTO obtenerInformacionManagerPorUserName(String userName) {
@@ -73,76 +77,89 @@ public class ManagerServicio {
 
 
 
-@Transactional
-public void registrarAlumno(RegistroAlumnoDTO dto) {
-    // Crear y guardar el Usuario
-    Entidad_Usuario usuario = new Entidad_Usuario();
-    usuario.setUserName(dto.getUserName());
-    usuario.setNombre(dto.getNombre());
-    usuario.setApellido(dto.getApellido());
-    usuario.setEmail(dto.getEmail());
-    usuario.setContrasena(dto.getContrasena());
-    usuario.setGenero(dto.getGenero());
-    usuario.setFecha_nacimiento(dto.getFechaNacimiento());
-    usuario.setTagCredencial(dto.getTagCredencial());
-    usuario.setRol("ALUMNO"); // Fijar rol
-    usuarioRepository.save(usuario);
-
-    // Buscar la carrera
-    Entidad_carrera carrera = carreraRepository.findById(dto.getIdCarrera())
-            .orElseThrow(() -> new RuntimeException("Carrera no encontrada con ID: " + dto.getIdCarrera()));
-
-    // Crear y guardar la información específica del Alumno
-    Entidad_Usuario_Alumno alumno = new Entidad_Usuario_Alumno();
-    alumno.setUsuario(usuario); // Relación con el Usuario
-    alumno.setSemestre(dto.getSemestre());
-    alumno.setCarrera(carrera); // Relación con Carrera
-    alumno.setResidencia(dto.getResidencia());
-    alumnoRepository.save(alumno);
-
-    // Crear y guardar la relación con la actividad física (si se seleccionó una)
-    if (dto.getIdActividadFisica() != null) {
-        Entidad_ActividadFisica actividad = actividadFisicaRepository.findById(dto.getIdActividadFisica())
-                .orElseThrow(() -> new RuntimeException("Actividad no encontrada con ID: " + dto.getIdActividadFisica()));
-
-        Ent_AlumnoActividad alumnoActividad = new Ent_AlumnoActividad();
-        AlumnoActividadId id = new AlumnoActividadId();
-        id.setIdUsuarioAlumno(alumno.getIdUsuarioAlumno());
-        id.setIdActividadFisica(actividad.getIdActividadFisica());
-        alumnoActividad.setId(id);
-        alumnoActividad.setUsuarioAlumno(alumno);
-        alumnoActividad.setActividadFisica(actividad);
-
-        alumnoActividadRepository.save(alumnoActividad);
-    }
-}
-
-
-    public void registrarAdmin(RegistroAdminDTO dto) {
-        // 1. Crear y guardar el Usuario
+    @Transactional
+    public void registrarAlumno(RegistroAlumnoDTO dto) {
+        PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+    
+        // Crear y guardar el Usuario
         Entidad_Usuario usuario = new Entidad_Usuario();
         usuario.setUserName(dto.getUserName());
         usuario.setNombre(dto.getNombre());
         usuario.setApellido(dto.getApellido());
         usuario.setEmail(dto.getEmail());
-        usuario.setContrasena(dto.getContrasena());
+    
+        // Encriptar la contraseña
+        String contrasenaEncriptada = passwordEncoder.encode(dto.getContrasena());
+        usuario.setContrasena(contrasenaEncriptada);
+    
         usuario.setGenero(dto.getGenero());
         usuario.setFecha_nacimiento(dto.getFechaNacimiento());
-        usuario.setRol("ADMIN"); // Asignamos el rol
-        usuario.setTagCredencial(dto.gettagCredencial());
+        usuario.setTagCredencial(dto.getTagCredencial());
+        usuario.setRol("ALUMNO"); // Fijar rol
         usuarioRepository.save(usuario);
+    
+        // Buscar la carrera
+        Entidad_carrera carrera = carreraRepository.findById(dto.getIdCarrera())
+                .orElseThrow(() -> new RuntimeException("Carrera no encontrada con ID: " + dto.getIdCarrera()));
+    
+        // Crear y guardar la información específica del Alumno
+        Entidad_Usuario_Alumno alumno = new Entidad_Usuario_Alumno();
+        alumno.setUsuario(usuario); // Relación con el Usuario
+        alumno.setSemestre(dto.getSemestre());
+        alumno.setCarrera(carrera); // Relación con Carrera
+        alumno.setResidencia(dto.getResidencia());
+        alumnoRepository.save(alumno);
+    
+        // Crear y guardar la relación con la actividad física (si se seleccionó una)
+        if (dto.getIdActividadFisica() != null) {
+            Entidad_ActividadFisica actividad = actividadFisicaRepository.findById(dto.getIdActividadFisica())
+                    .orElseThrow(() -> new RuntimeException("Actividad no encontrada con ID: " + dto.getIdActividadFisica()));
+    
+            Ent_AlumnoActividad alumnoActividad = new Ent_AlumnoActividad();
+            AlumnoActividadId id = new AlumnoActividadId();
+            id.setIdUsuarioAlumno(alumno.getIdUsuarioAlumno());
+            id.setIdActividadFisica(actividad.getIdActividadFisica());
+            alumnoActividad.setId(id);
+            alumnoActividad.setUsuarioAlumno(alumno);
+            alumnoActividad.setActividadFisica(actividad);
+    
+            alumnoActividadRepository.save(alumnoActividad);
+        }
+    }
 
-        // 2. Obtener el Servicio
-        Ent_Servicio servicio = servicioRepository.findById(dto.getServicioId())
+
+@Transactional
+public void registrarAdmin(RegistroAdminDTO dto) {
+    PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+
+    // 1. Crear y guardar el Usuario
+    Entidad_Usuario usuario = new Entidad_Usuario();
+    usuario.setUserName(dto.getUserName());
+    usuario.setNombre(dto.getNombre());
+    usuario.setApellido(dto.getApellido());
+    usuario.setEmail(dto.getEmail());
+
+    // Encriptar la contraseña
+    String contrasenaEncriptada = passwordEncoder.encode(dto.getContrasena());
+    usuario.setContrasena(contrasenaEncriptada);
+
+    usuario.setGenero(dto.getGenero());
+    usuario.setFecha_nacimiento(dto.getFechaNacimiento());
+    usuario.setRol("ADMIN"); // Asignamos el rol
+    usuario.setTagCredencial(dto.gettagCredencial());
+    usuarioRepository.save(usuario);
+
+    // 2. Obtener el Servicio
+    Ent_Servicio servicio = servicioRepository.findById(dto.getServicioId())
             .orElseThrow(() -> new RuntimeException("Servicio no encontrado"));
 
-        // 3. Crear y guardar el Administrador
-        Ent_UsuarioAdmin admin = new Ent_UsuarioAdmin();
-        admin.setUsuario(usuario); // Relación con el Usuario
-        admin.setCargoServicio(dto.getCargoServicio());
-        admin.setServicio(servicio); // Relación con el Servicio
-        adminRepository.save(admin);
-    }
+    // 3. Crear y guardar el Administrador
+    Ent_UsuarioAdmin admin = new Ent_UsuarioAdmin();
+    admin.setUsuario(usuario); // Relación con el Usuario
+    admin.setCargoServicio(dto.getCargoServicio());
+    admin.setServicio(servicio); // Relación con el Servicio
+    adminRepository.save(admin);
+}
 
      public void registrarServicio(RegistroServicioDTO dto) {
         Ent_Servicio servicio = new Ent_Servicio();
@@ -154,7 +171,6 @@ public void registrarAlumno(RegistroAlumnoDTO dto) {
         return servicioRepository.findAll();
     }
 
-    @Transactional
     public void registrarCoach(RegistroCoachDTO coachDTO) {
         Entidad_Usuario usuario = new Entidad_Usuario();
         usuario.setNombre(coachDTO.getNombre());
@@ -163,9 +179,14 @@ public void registrarAlumno(RegistroAlumnoDTO dto) {
         usuario.setGenero(coachDTO.getGenero());
         usuario.setFecha_nacimiento(coachDTO.getFechaNacimiento());
         usuario.setUserName(coachDTO.getUserName());
-        usuario.setContrasena(coachDTO.getContrasena());
+
+        // Cifrar la contraseña antes de guardarla
+        String contrasenaCifrada = passwordEncoder.encode(coachDTO.getContrasena());
+        usuario.setContrasena(contrasenaCifrada);
+
         usuario.setTagCredencial(coachDTO.gettagCredencial());
         usuario.setRol("COACH"); // Asignar el rol de Coach
+
         usuarioRepository.save(usuario);
     }
 }
