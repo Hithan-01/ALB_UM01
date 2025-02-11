@@ -93,6 +93,7 @@ public class CoachActividadServicio {
             throw new RuntimeException("Error al iniciar pase de lista: " + e.getMessage());
         }
     }
+    
 
 private ActividadFisicaDTO convertirAActividadFisicaDTO(Entidad_ActividadFisica actividadFisica) {
     // Obtener los alumnos asociados a la actividad

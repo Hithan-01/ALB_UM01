@@ -1,5 +1,6 @@
 package com.demo.alb_um.Login;
 
+import com.demo.alb_um.Config.EmailService;
 import com.demo.alb_um.DTOs.ActividadFisicaDTO;
 import com.demo.alb_um.DTOs.AlumnoDTO;
 import com.demo.alb_um.DTOs.CoachDTO;
@@ -69,7 +70,7 @@ public class ManagerControlador {
     
         // Pasar las actividades agrupadas al modelo
         model.addAttribute("actividadesPorTipo", actividadesPorTipo);
-        return "listaActividades";
+        return "/Vistas_Manager/Lista_Actividades";
     }
     
     @GetMapping("/eliminar-actividad/{id}")
@@ -91,7 +92,7 @@ public class ManagerControlador {
         try {
             List<AlumnoDTO> alumnos = actividadFisicaServicio.obtenerAlumnosPorActividad(id);
             model.addAttribute("alumnos", alumnos);
-            return "listaActAlumnos";
+            return "/Vistas_Manager/Lista_Alumnos_Actividades";
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("mensajeError", "No se pudo cargar la lista de alumnos: " + e.getMessage());
             return "redirect:/portal/manager/listar-actividades";
@@ -111,7 +112,7 @@ public class ManagerControlador {
             model.addAttribute("alumno", alumno);
             model.addAttribute("actividades", actividades);
     
-            return "moverAlumno"; // Vista donde se muestra el formulario de actividades
+            return "/Vistas_Manager/Mover_Alumno"; // Vista donde se muestra el formulario de actividades
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("mensajeError", "Error al cargar las opciones de actividades: " + e.getMessage());
             return "redirect:/portal/manager/listar-actividades";
@@ -139,7 +140,7 @@ public class ManagerControlador {
     @GetMapping("/crear-actividad")
     public String mostrarFormularioCrearActividad(Model model) {
         model.addAttribute("actividad", new RegistrarActividadDTO("", "", null, ""));
-        return "crearActividad";
+        return "/Vistas_Manager/Crear_Actividad";
     }
 
     @PostMapping("/crear-actividad")
@@ -179,7 +180,7 @@ public class ManagerControlador {
         List<CoachDTO> coaches = coachActividadServicio.obtenerCoaches(); // Obtener todos los coaches
         model.addAttribute("coaches", coaches);
         model.addAttribute("idActividad", idActividad);
-        return "asignarCoach"; // Retorna la vista con el formulario
+        return "/Vistas_Manager/Asignar_Coach"; // Retorna la vista con el formulario
     }
 
     // Asignar Coach a la actividad
@@ -204,7 +205,7 @@ public class ManagerControlador {
     
         model.addAttribute("coaches", coachesDisponibles);
         model.addAttribute("idActividad", idActividad);
-        return "cambiarCoach";
+        return "/Vistas_Manager/Cambiar_Coach";
     }
     
 
@@ -232,7 +233,7 @@ public String mostrarFormularioEdicion(@PathVariable Long id, Model model) {
 
     // Añadir el DTO al modelo
     model.addAttribute("actividadDTO", actividadDTO);
-    return "editarActividad";
+    return "/Vistas_Manager/Editar_Actividad";
 }
 
 
@@ -248,14 +249,14 @@ public String mostrarFormularioEdicion(@PathVariable Long id, Model model) {
     
     @GetMapping("/usuarios")
     public String mostrarUsuarios() {
-        return "usuarios";
+        return "/Vistas_Manager/Vista_De_Registros";
     }
 
     @GetMapping("/registrar-alumno")
     public String mostrarFormulario(Model model) {
         model.addAttribute("registroAlumno", new RegistroAlumnoDTO());
         model.addAttribute("carreras", carreraRepository.findAll()); // Cargar todas las carreras disponibles
-        return "formularioAlumno"; // Vista HTML
+        return "/Vistas_Manager/Formulario_Registro_Alumno"; // Vista HTML
     }
     
     // Procesar formulario y guardar alumno
@@ -270,30 +271,39 @@ public String mostrarFormularioEdicion(@PathVariable Long id, Model model) {
     public String mostrarFormularioAdmin(Model model) {
         model.addAttribute("registroAdmin", new RegistroAdminDTO());
         model.addAttribute("servicios", managerServicio.obtenerServicios()); // Asegúrate de enviar la lista de servicios
-        return "formularioAdmin";
+        return "/Vistas_Manager/Formulario_Registro_Admin";
     }
     
 
-    // Procesar el formulario
     @PostMapping("/registrar-admin")
-    public String registrarAdmin(@ModelAttribute("registroAdmin") RegistroAdminDTO dto) {
+    public String registrarAdmin(@ModelAttribute("registroAdmin") RegistroAdminDTO dto, Model model) {
         managerServicio.registrarAdmin(dto);
-        return "redirect:/portal/manager/usuarios?success";
+    
+        // Agregar mensaje de éxito
+        model.addAttribute("successMessage", "Administrador registrado exitosamente.");
+        
+        // Volver a cargar la lista de servicios
+        model.addAttribute("registroAdmin", new RegistroAdminDTO());
+        model.addAttribute("servicios", managerServicio.obtenerServicios());
+    
+        return "/Vistas_Manager/Formulario_Registro_Admin"; // Mantiene en la misma página
     }
-
+    
     // Mostrar el formulario para crear un servicio
     @GetMapping("/registrar-servicio")
     public String Mostrarformulario(Model model) {
         model.addAttribute("registroServicio", new RegistroServicioDTO());
-        return "formularioServicio";
+        return "/Vistas_Manager/Formulario_Crear_Servicio";
     }
 
-    // Procesar el formulario
-    @PostMapping("/registrar-servicio")
-    public String registrarServicio(@ModelAttribute("registroServicio") RegistroServicioDTO dto) {
-        managerServicio.registrarServicio(dto);
-        return "redirect:/portal/manager/servicios?success";
-    }
+// Procesar el formulario
+@PostMapping("/registrar-servicio")
+public String registrarServicio(@ModelAttribute("registroServicio") RegistroServicioDTO dto, RedirectAttributes redirectAttributes) {
+    managerServicio.registrarServicio(dto);
+    redirectAttributes.addFlashAttribute("success", "Servicio registrado con éxito.");
+    return "redirect:/portal/manager/registrar-servicio"; // 🔥 Regresa a la misma vista
+}
+
 
     @GetMapping("/servicios")
     public String listarServicios(@RequestParam(value = "success", required = false) String success, Model model) {
@@ -301,14 +311,14 @@ public String mostrarFormularioEdicion(@PathVariable Long id, Model model) {
         if (success != null) {
             model.addAttribute("mensajeExito", "Servicio creado exitosamente");
         }
-        return "listarServicios";
+        return "/Vistas_Manager/Lista_Servicios";
     }
 
 
     @GetMapping("/registrar-coach")
     public String mostrarFormularioRegistroCoach(Model model) {
         model.addAttribute("registroCoach", new RegistroCoachDTO());
-        return "formularioCoach"; // Nombre de la vista HTML
+        return "/Vistas_Manager/Formulario_Registro_Coach"; // Nombre de la vista HTML
     }
 
     @PostMapping("/registrar-coach")
@@ -317,4 +327,40 @@ public String mostrarFormularioEdicion(@PathVariable Long id, Model model) {
         return "redirect:/portal/manager/usuarios?success";
     }
 
+
+    @Autowired
+    private EmailService emailService;
+
+/**
+     * Enviar correo individual a un usuario.
+     */
+    @PostMapping("/enviar-individual")
+    public String enviarCorreoIndividual(@RequestParam String destinatario, 
+                                         @RequestParam String asunto, 
+                                         @RequestParam String mensaje,
+                                         RedirectAttributes redirectAttributes) {
+        try {
+            emailService.enviarCorreoIndividual(destinatario, asunto, mensaje);
+            redirectAttributes.addFlashAttribute("mensajeExito", "Correo enviado correctamente a " + destinatario);
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("mensajeError", "Error al enviar el correo: " + e.getMessage());
+        }
+        return "redirect:/portal/inicio";
+    }
+
+    /**
+     * Enviar correos a todos los alumnos registrados.
+     */
+    @PostMapping("/enviar-masivo")
+    public String enviarCorreoMasivo(@RequestParam String asunto, 
+                                     @RequestParam String mensaje,
+                                     RedirectAttributes redirectAttributes) {
+        try {
+            emailService.enviarCorreoMasivo(asunto, mensaje);
+            redirectAttributes.addFlashAttribute("mensajeExito", "Correos masivos enviados correctamente.");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("mensajeError", "Error al enviar los correos: " + e.getMessage());
+        }
+        return "redirect:/portal/inicio";
+    }
 }

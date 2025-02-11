@@ -23,12 +23,14 @@ public class TallerDTO {
     private LocalDateTime fechaHoraCompleta;
     private LocalDateTime inicioRegistroLlegada;
     private LocalDateTime finRegistroLlegadaValida;
-    
+    private String lugar; // 🔹 Nuevo campo agregado
+
+
     // Constructor actualizado
     public TallerDTO(Long idTaller, String nombre, String descripcion, 
             LocalDate fecha, LocalTime hora, Integer duracion, 
             Integer cuposDisponibles, EstadoTaller estado, 
-            Integer tiempoTranscurrido) {
+            Integer tiempoTranscurrido, String lugar) { // 🔹 Se agrega "lugar"
         this.idTaller = idTaller;
         this.nombre = nombre;
         this.descripcion = descripcion;
@@ -39,12 +41,22 @@ public class TallerDTO {
         this.estado = estado;
         this.tiempoTranscurrido = tiempoTranscurrido;
         this.puedeTomarLista = estado == EstadoTaller.FINALIZADO;
+        this.lugar = lugar; // 🔹 Se inicializa el nuevo campo
         
         // Inicializar los nuevos campos
         this.fechaHoraCompleta = LocalDateTime.of(fecha, hora);
         this.inicioRegistroLlegada = fechaHoraCompleta.minusMinutes(10);
         this.finRegistroLlegadaValida = fechaHoraCompleta.plusMinutes(10);
         this.puedeRegistrarLlegada = calcularPuedeRegistrarLlegada();
+    }
+
+    // Getters y Setters
+    public String getLugar() {
+        return lugar;
+    }
+
+    public void setLugar(String lugar) {
+        this.lugar = lugar;
     }
 
     // Getters y Setters

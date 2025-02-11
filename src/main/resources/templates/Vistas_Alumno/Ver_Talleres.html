@@ -53,18 +53,15 @@
 <!-- Navbar -->
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
     <div class="container-fluid">
-        <!-- Enlace ALBUM redirige al inicio -->
         <a class="navbar-brand" href="/Alb_Um/portal/inicio">ALBUM</a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
-            <!-- Botón para cerrar sesión -->
             <a href="/Alb_Um/logout" class="btn btn-outline-light">Cerrar Sesión</a>
         </div>
     </div>
 </nav>
-
 
 <div class="container mt-5">
     <div class="text-center mb-4">
@@ -83,6 +80,8 @@
                 <thead>
                     <tr class="text-center">
                         <th>Nombre</th>
+                        <th>Lugar</th>
+                        <th>Fecha</th>
                         <th>Hora</th>
                         <th>Estado</th>
                         <th>Acción</th>
@@ -91,20 +90,22 @@
                 <tbody>
                     <tr th:each="taller : ${talleres}">
                         <td th:text="${taller.nombre}" class="fw-bold"></td>
+                        <td th:text="${taller.lugar}"></td>
+                        <td th:text="${#temporals.format(taller.fecha, 'dd/MM/yyyy')}"></td>
                         <td th:text="${#temporals.format(taller.hora, 'HH:mm')}"></td>
-                        <td>
+                        <td class="text-center">
                             <!-- Estado con colores según su valor -->
                             <span th:class="${'badge ' + 
-                                (taller.estado == 'PROGRAMADO' ? 'bg-primary' : 
-                                 taller.estado == 'EN_CURSO' ? 'bg-success' : 
-                                 taller.estado == 'FINALIZADO' ? 'bg-secondary' : 'bg-warning')}" 
+                                (taller.estado.name() == 'PROGRAMADO' ? 'bg-primary' : 
+                                 taller.estado.name() == 'REGISTRO_ABIERTO' ? 'bg-warning' :
+                                 taller.estado.name() == 'EN_CURSO' ? 'bg-success' : 
+                                 taller.estado.name() == 'FINALIZADO' ? 'bg-secondary' : 'bg-danger')}" 
                                   th:text="${taller.estado}">
                             </span>
                         </td>
                         <td class="text-center">
-                            <!-- Botón de inscripción -->
-                            <div th:if="${taller.estado.name == 'PROGRAMADO' || taller.estado.name == 'REGISTRO_ABIERTO'}">
-                                <!-- Verificar si ya está inscrito -->
+                            <!-- Verificar si ya está inscrito -->
+                            <div th:if="${taller.estado.name() == 'PROGRAMADO' || taller.estado.name() == 'REGISTRO_ABIERTO'}">
                                 <button th:if="${taller.estaInscrito}" 
                                         class="btn btn-sm btn-secondary" disabled>
                                     <i class="fas fa-check-circle"></i> Ya inscrito
@@ -118,7 +119,7 @@
                                 </button>
                             </div>
                             <!-- Mensaje si el taller ya inició o finalizó -->
-                            <span th:if="${taller.estado.name != 'PROGRAMADO' && taller.estado.name != 'REGISTRO_ABIERTO'}" class="text-muted">
+                            <span th:if="${taller.estado.name() != 'PROGRAMADO' && taller.estado.name() != 'REGISTRO_ABIERTO'}" class="text-muted">
                                 <i class="fas fa-ban"></i> Inscripción no disponible
                             </span>
                         </td>

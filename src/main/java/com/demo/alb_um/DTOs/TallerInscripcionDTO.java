@@ -9,13 +9,15 @@ public class TallerInscripcionDTO {
     private LocalDate fecha;
     private LocalTime hora;
     private String estadoAsistencia;
+    private String lugar; // 🔹 Se agrega el campo "lugar"
 
-    public TallerInscripcionDTO(String nombre, String descripcion, LocalDate fecha, LocalTime hora, String estadoAsistencia) {
+    public TallerInscripcionDTO(String nombre, String descripcion, LocalDate fecha, LocalTime hora, String estadoAsistencia, String lugar) {
         this.nombre = nombre;
         this.descripcion = descripcion;
         this.fecha = fecha;
         this.hora = hora;
         this.estadoAsistencia = estadoAsistencia;
+        this.lugar = lugar; // 🔹 Se inicializa el campo "lugar"
     }
 
     // Getters
@@ -39,6 +41,10 @@ public class TallerInscripcionDTO {
         return estadoAsistencia;
     }
 
+    public String getLugar() { // 🔹 Nuevo getter para "lugar"
+        return lugar;
+    }
+
     // Setters
     public void setNombre(String nombre) {
         this.nombre = nombre;
@@ -58,5 +64,9 @@ public class TallerInscripcionDTO {
 
     public void setEstadoAsistencia(String estadoAsistencia) {
         this.estadoAsistencia = estadoAsistencia;
+    }
+
+    public void setLugar(String lugar) { // 🔹 Nuevo setter para "lugar"
+        this.lugar = lugar;
     }
 }

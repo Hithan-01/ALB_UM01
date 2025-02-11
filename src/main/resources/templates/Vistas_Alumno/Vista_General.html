@@ -67,6 +67,15 @@
                     <p><strong>Horario:</strong> <span th:text="${alumno.horario}"></span></p>
                     <p><strong>Coach:</strong> <span th:text="${alumno.nombreCoach}"></span></p>
                 </div>
+
+                    <!-- Botón Ver Detalles de Asistencia -->
+<!-- Botón Ver Detalles de Asistencia -->
+<div class="text-center mt-3">
+    <a href="/Alb_Um/alumno/ver-detalles-asistencias" class="btn btn-warning">
+        <i class="icon fas fa-calendar-check"></i> Ver Detalles de Asistencia
+    </a>
+</div>
+
             </div>
         </div>
     </div>
@@ -95,18 +104,20 @@
         </div>
     </div>
 
-    <!-- Talleres Pendientes -->
-    <div th:if="${talleresPendientes.size() > 0}" class="card mt-4">
-        <div class="card-header bg-warning text-dark">Talleres Pendientes</div>
-        <div class="card-body">
-            <ul class="list-group">
-                <li class="list-group-item" th:each="taller : ${talleresPendientes}">
-                    <strong th:text="${taller.nombre}"></strong> - 
-                    <span th:text="${taller.fecha != null ? taller.fecha : 'Sin fecha asignada'}"></span>
-                </li>
-            </ul>
-        </div>
+<!-- Talleres Pendientes -->
+<div th:if="${talleresPendientes.size() > 0}" class="card mt-4">
+    <div class="card-header bg-warning text-dark">Talleres Pendientes</div>
+    <div class="card-body">
+        <ul class="list-group">
+            <li class="list-group-item" th:each="taller : ${talleresPendientes}">
+                <strong th:text="${taller.nombre}"></strong> - 
+                <span th:text="${taller.fecha != null ? #temporals.format(taller.fecha, 'dd-MM-yyyy') : 'Sin fecha asignada'}"></span> |
+                <span th:text="${taller.hora != null ? #temporals.format(taller.hora, 'HH:mm') : 'Sin hora asignada'}"></span> |
+                <span th:text="${taller.lugar != null ? taller.lugar : 'Lugar no disponible'}"></span>
+            </li>
+        </ul>
     </div>
+</div>
 
     <!-- Citas Confirmadas -->
     <div th:if="${citasConfirmadas.size() > 0}" class="card mt-4">

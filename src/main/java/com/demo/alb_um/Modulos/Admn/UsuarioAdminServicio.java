@@ -140,7 +140,8 @@ public class UsuarioAdminServicio {
             taller.getDuracion(),
             taller.getCuposDisponibles(),
             taller.getEstado(),
-            taller.getTiempoTranscurrido()
+            taller.getTiempoTranscurrido(),
+            taller.getLugar() // 🔹 Se agregó el campo "lugar"
         );
         
         // Establecer campos adicionales que no están en el constructor

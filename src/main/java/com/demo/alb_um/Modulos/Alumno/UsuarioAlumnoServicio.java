@@ -183,7 +183,8 @@ private AlumnoDTO convertirAAlumnoDTOConActividad(Entidad_Usuario_Alumno alumno)
                 inscripcion.getTaller().getDescripcion(),
                 inscripcion.getTaller().getFecha(),
                 inscripcion.getTaller().getHora(),
-                inscripcion.getEstadoAsistencia()
+                inscripcion.getEstadoAsistencia(),
+                inscripcion.getTaller().getLugar()
         );
     }
 

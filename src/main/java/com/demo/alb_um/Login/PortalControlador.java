@@ -62,7 +62,8 @@ public class PortalControlador {
                 case "ROLE_MANAGER":
                 return serviciosControllers.cargarVistaManager(userName, managerServicio, model);
             default:
-                return "error"; // Manejar roles inesperados
+            System.out.println("Rol no reconocido: " + role);
+            return "error"; // Manejar roles inesperados
         }
     }
 

@@ -18,4 +18,7 @@ public interface UsuarioRepositorio extends JpaRepository<Entidad_Usuario, Long>
 
     @Query("SELECT u FROM Entidad_Usuario u WHERE u.rol = :rol AND u.idUsuario <> :idUsuario")
     List<Entidad_Usuario> findByRolAndIdUsuarioNot(@Param("rol") String rol, @Param("idUsuario") Long idUsuario);
+    
+    @Query("SELECT u.email FROM Entidad_Usuario u WHERE u.rol = 'ALUMNO'")
+    List<String> obtenerEmailsDeAlumnos();
 }

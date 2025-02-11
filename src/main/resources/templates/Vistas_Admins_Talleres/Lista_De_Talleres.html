@@ -87,6 +87,7 @@
                 <thead>
                     <tr>
                         <th>Nombre</th>
+                        <th>Lugar</th>
                         <th>Fecha</th>
                         <th>Hora</th>
                         <th>Cupos</th>
@@ -97,6 +98,7 @@
                 <tbody>
                     <tr th:each="taller : ${talleres}">
                         <td th:text="${taller.nombre}"></td>
+                        <td th:text="${taller.lugar}"></td>
                         <td th:text="${#temporals.format(taller.fecha, 'dd-MM-yyyy')}"></td>
                         <td th:text="${#temporals.format(taller.hora, 'HH:mm')}"></td>
                         <td th:text="${taller.cuposDisponibles + '/' + taller.cupos}"></td>
@@ -111,7 +113,7 @@
                         <td>
                             <!-- Botones de acción -->
                             <a th:href="@{/portal/admin/talleres/{id}/alumnos(id=${taller.idTaller})}" 
-                            class="btn btn-primary btn-sm">Ver Alumnos</a>
+                               class="btn btn-primary btn-sm">Ver Alumnos</a>
                             <a th:href="@{/portal/admin/talleres/{id}/detalles(id=${taller.idTaller})}" 
                                class="btn btn-info btn-sm">Detalles</a>
                             <a th:href="@{/portal/admin/talleres/{id}/editar(id=${taller.idTaller})}" 
@@ -127,13 +129,12 @@
                         </td>
                     </tr>
                     <tr th:if="${#lists.isEmpty(talleres)}">
-                        <td colspan="6" class="text-center">No hay talleres registrados.</td>
+                        <td colspan="7" class="text-center">No hay talleres registrados.</td>
                     </tr>
                 </tbody>
             </table>
         </div>
-    </div>
-
+        
     <!-- Footer -->
     <footer>
         <p>© 2025 Universidad Saludable</p>

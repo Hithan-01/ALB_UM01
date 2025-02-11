@@ -1,11 +1,14 @@
 package com.demo.alb_um.Modulos.Actividad_Fisica;
+
 import jakarta.persistence.*;
 import java.sql.Time;
+import java.time.LocalTime;
 import java.util.Set;
 import com.demo.alb_um.Modulos.Listas.Entidad_Lista;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.demo.alb_um.Modulos.Alumno_Actividad.Ent_AlumnoActividad;
 import com.demo.alb_um.Modulos.Coach.Ent_CoachActividad;
+import com.fasterxml.jackson.annotation.JsonFormat;
 
 @Entity
 @Table(name = "actividad_fisica")
@@ -20,6 +23,8 @@ public class Entidad_ActividadFisica {
     private String nombre;
 
     @Column(name = "hora")
+    @JsonFormat(pattern = "hh:mm a")
+    @Temporal(TemporalType.TIME)
     private Time hora;
 
     @Column(name = "grupo", length = 10)
@@ -29,7 +34,7 @@ public class Entidad_ActividadFisica {
     private String diaSemana;
 
     @Column(name = "identificador_grupo", length = 10)
-    private String identificadorGrupo; // Nueva columna
+    private String identificadorGrupo;
 
     @OneToMany(mappedBy = "actividadFisica", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonManagedReference
@@ -43,8 +48,11 @@ public class Entidad_ActividadFisica {
     @JsonManagedReference
     private Set<Ent_AlumnoActividad> alumnoActividades;
 
-    // Getters y Setters
+    // Constructor por defecto
+    public Entidad_ActividadFisica() {
+    }
 
+    // Getters y Setters
     public Long getIdActividadFisica() {
         return idActividadFisica;
     }
@@ -61,13 +69,18 @@ public class Entidad_ActividadFisica {
         this.nombre = nombre;
     }
 
-
     public Time getHora() {
         return hora;
     }
 
     public void setHora(Time hora) {
-        this.hora = hora;
+        // Asegurarse de que la hora está en el formato correcto
+        if (hora != null) {
+            LocalTime localTime = hora.toLocalTime();
+            this.hora = Time.valueOf(localTime);
+        } else {
+            this.hora = null;
+        }
     }
 
     public String getGrupo() {
@@ -109,11 +122,22 @@ public class Entidad_ActividadFisica {
     public void setAlumnoActividades(Set<Ent_AlumnoActividad> alumnoActividades) {
         this.alumnoActividades = alumnoActividades;
     }
+
     public String getIdentificadorGrupo() {
         return identificadorGrupo;
     }
 
     public void setIdentificadorGrupo(String identificadorGrupo) {
         this.identificadorGrupo = identificadorGrupo;
+    }
+
+    // Método para formatear la hora en formato 12 horas
+    @Transient
+    public String getHoraFormateada() {
+        if (hora != null) {
+            LocalTime localTime = hora.toLocalTime();
+            return localTime.format(java.time.format.DateTimeFormatter.ofPattern("hh:mm a"));
+        }
+        return null;
     }
 }

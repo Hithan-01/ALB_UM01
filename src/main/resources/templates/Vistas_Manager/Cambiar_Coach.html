@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Cambiar Coach</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .container {
+            margin-top: 30px;
+            max-width: 600px;
+        }
+        .form-control, .form-select {
+            border-radius: 10px;
+        }
+        .btn-lg {
+            width: 100%;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Navbar -->
+<header class="header text-white py-3" style="background: linear-gradient(45deg, #343a40, #6c757d);">
+    <div class="container">
+        <nav class="navbar navbar-expand-lg navbar-dark">
+            <a class="navbar-brand" th:href="@{/portal/inicio}">ÁLBUM UM</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" 
+                    aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarContent">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/portal/manager/listar-actividades}">Ver Actividades Físicas</a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="registroDropdown" role="button"
+                           data-bs-toggle="dropdown" aria-expanded="false">
+                            Registrar
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="registroDropdown">
+                            <li><a class="dropdown-item" th:href="@{/portal/manager/registrar-alumno}">Registrar Alumno</a></li>
+                            <li><a class="dropdown-item" th:href="@{/portal/manager/registrar-admin}">Registrar Administrador</a></li>
+                            <li><a class="dropdown-item" th:href="@{/portal/manager/registrar-coach}">Registrar Coach</a></li>
+                            <li><a class="dropdown-item" th:href="@{/portal/manager/registrar-servicio}">Registrar Servicio</a></li>
+                        </ul>
+                    </li>
+                </ul>
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/logout}">Cerrar Sesión</a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+    </div>
+</header>
+<div class="container mt-5">
+    <h1>Cambiar Coach de la Actividad</h1>
+    <form th:action="@{/portal/manager/cambiar-coach}" method="post">
+        <input type="hidden" name="idActividad" th:value="${idActividad}">
+    
+        <div class="form-group">
+            <label for="coachId">Selecciona un Coach:</label>
+            <select id="coachId" name="coachId" class="form-control" required>
+                <option value="">-- Selecciona un Coach --</option>
+                <option th:each="coach : ${coaches}" 
+                        th:value="${coach.idUsuario}" 
+                        th:text="${coach.nombreCompleto}">
+                </option>
+            </select>
+        </div>
+    
+        <button type="submit" class="btn btn-success mt-3">Cambiar Coach</button>
+        <a th:href="@{'/portal/manager/editar/' + ${idActividad}}" class="btn btn-secondary mt-3">Cancelar</a>
+    </form>
+    
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

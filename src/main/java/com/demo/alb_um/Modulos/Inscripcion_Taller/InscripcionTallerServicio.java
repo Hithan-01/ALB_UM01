@@ -61,7 +61,6 @@ public boolean estaInscritoEnTaller(Long idAlumno, Long idTaller) {
     }
     
     
-
     public List<TallerDTO> listarTalleresDisponibles() {
         List<Ent_Taller> talleres = tallerRepository.findAll();  // Obtener todos los talleres
     
@@ -76,20 +75,21 @@ public boolean estaInscritoEnTaller(Long idAlumno, Long idTaller) {
                     taller.getDuracion(),
                     taller.getCuposDisponibles(),
                     taller.getEstado(),
-                    taller.getTiempoTranscurrido()
+                    taller.getTiempoTranscurrido(),
+                    taller.getLugar()  // 🔹 Se agregó el campo "lugar"
                 );
-                    
+    
                 // Si no hay cupos disponibles, marcamos el taller como lleno
                 dto.setTallerLleno(taller.getCuposDisponibles() == 0);
-                
+    
                 // Inicializamos estaInscrito como false por defecto
                 dto.setEstaInscrito(false);
-                
+    
                 return dto;
             })
             .collect(Collectors.toList());
     }
-
+    
     
 
     // Método para inscribir un alumno a un taller (sin cambios)
@@ -224,10 +224,11 @@ public boolean estaInscritoEnTaller(Long idAlumno, Long idTaller) {
             taller.getDuracion(),
             taller.getCuposDisponibles(),
             taller.getEstado(),
-            taller.getTiempoTranscurrido()
+            taller.getTiempoTranscurrido(),
+            taller.getLugar() // 🔹 Se agregó el campo "lugar"
         );
     }
-
+    
     public List<TallerDTO> obtenerTalleresDelDia() {
         LocalDate hoy = LocalDate.now();
         
@@ -295,12 +296,12 @@ public boolean estaInscritoEnTaller(Long idAlumno, Long idTaller) {
                 inscripcion.getTaller().getDescripcion(),
                 inscripcion.getTaller().getFecha(),
                 inscripcion.getTaller().getHora(),
-                inscripcion.getEstadoAsistencia()
+                inscripcion.getEstadoAsistencia(),
+                inscripcion.getTaller().getLugar() // 🔹 Se agregó el campo "lugar"
             ))
             .collect(Collectors.toList());
     }
-
-
+    
     public List<Ent_InscripcionTaller> obtenerInscripcionesPorTaller(Long idTaller) {
         return RepositorioInscripcionTaller.findByTaller_IdTaller(idTaller);
     }
@@ -563,6 +564,9 @@ public boolean estaInscritoEnTaller(Long idAlumno, Long idTaller) {
         if (taller.getDuracion() == null || taller.getDuracion() <= 0) {
             throw new IllegalArgumentException("La duración del taller debe ser mayor a 0 minutos.");
         }
+        if (taller.getLugar() == null || taller.getLugar().trim().isEmpty()) {
+            throw new IllegalArgumentException("El lugar del taller es obligatorio.");
+        }
     
         // Validar que la fecha y hora sean futuras
         LocalDateTime fechaHoraActual = LocalDateTime.now();
@@ -572,15 +576,16 @@ public boolean estaInscritoEnTaller(Long idAlumno, Long idTaller) {
         }
     
         // Configurar valores iniciales
-        taller.setCuposDisponibles(taller.getCupos()); // Los cupos disponibles deben ser iguales a los cupos totales al inicio
+        taller.setCuposDisponibles(taller.getCupos()); // Cupos disponibles igual a cupos totales
         taller.setEstado(Ent_Taller.EstadoTaller.PROGRAMADO); // Estado inicial: PROGRAMADO
         if (taller.getDescripcion() == null || taller.getDescripcion().trim().isEmpty()) {
-            taller.setDescripcion("Descripción no proporcionada."); // Descripción por defecto si no se especifica
+            taller.setDescripcion("Descripción no proporcionada."); // Descripción por defecto
         }
     
         // Guardar taller en el repositorio
         tallerRepository.save(taller);
     }
+    
     
 
     public Optional<Ent_Taller> obtenerTallerPorId(Long id) {
@@ -595,6 +600,11 @@ public boolean estaInscritoEnTaller(Long idAlumno, Long idTaller) {
         // Validar nombre
         if (tallerActualizado.getNombre() == null || tallerActualizado.getNombre().trim().isEmpty()) {
             throw new IllegalArgumentException("El nombre del taller no puede estar vacío.");
+        }
+    
+        // Validar lugar
+        if (tallerActualizado.getLugar() == null || tallerActualizado.getLugar().trim().isEmpty()) {
+            throw new IllegalArgumentException("El lugar del taller es obligatorio.");
         }
     
         // Validar fecha y hora
@@ -622,6 +632,7 @@ public boolean estaInscritoEnTaller(Long idAlumno, Long idTaller) {
         taller.setHora(tallerActualizado.getHora());
         taller.setDuracion(tallerActualizado.getDuracion());
         taller.setCupos(tallerActualizado.getCupos());
+        taller.setLugar(tallerActualizado.getLugar()); // 🔹 Ahora se actualiza el lugar
     
         // Calcular cupos disponibles
         int nuevosCuposDisponibles = Math.max(0, tallerActualizado.getCupos() - cuposOcupados);
@@ -630,6 +641,7 @@ public boolean estaInscritoEnTaller(Long idAlumno, Long idTaller) {
         // Guardar los cambios
         tallerRepository.save(taller);
     }
+    
     
     
     public void eliminarTaller(Long id) {

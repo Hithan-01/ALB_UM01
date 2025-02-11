@@ -4,7 +4,6 @@ import com.demo.alb_um.Modulos.Alumno.Entidad_Usuario_Alumno;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.demo.alb_um.Modulos.Coach.Ent_CoachActividad;
 import jakarta.persistence.*;
-
 import java.time.LocalDate;
 import java.util.Set;
 

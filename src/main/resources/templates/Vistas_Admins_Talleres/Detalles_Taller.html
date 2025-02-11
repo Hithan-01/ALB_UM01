@@ -81,28 +81,39 @@
         <div class="card">
             <div class="card-body">
                 <h5 class="card-title" th:text="${taller.nombre != null ? taller.nombre : 'Nombre no disponible'}">Nombre del Taller</h5>
+                
                 <p class="card-text"><strong>Descripción:</strong> 
                     <span th:if="${taller.descripcion != null}" th:text="${taller.descripcion}">Descripción</span>
                     <span th:if="${taller.descripcion == null}">Descripción no disponible</span>
                 </p>
+        
+                <p class="card-text"><strong>Lugar:</strong> 
+                    <span th:if="${taller.lugar != null}" th:text="${taller.lugar}">Lugar</span>
+                    <span th:if="${taller.lugar == null}">Lugar no disponible</span>
+                </p>
+        
                 <p class="card-text"><strong>Fecha:</strong> 
                     <span th:if="${taller.fecha != null}" th:text="${#temporals.format(taller.fecha, 'dd-MM-yyyy')}">Fecha</span>
                     <span th:if="${taller.fecha == null}">Fecha no disponible</span>
                 </p>
+        
                 <p class="card-text"><strong>Hora:</strong> 
                     <span th:if="${taller.hora != null}" th:text="${#temporals.format(taller.hora, 'HH:mm')}">Hora</span>
                     <span th:if="${taller.hora == null}">Hora no disponible</span>
                 </p>
+        
                 <p class="card-text"><strong>Cupos:</strong> 
                     <span th:if="${taller.cupos != null}" th:text="${taller.cupos}">Cupos</span>
                     <span th:if="${taller.cupos == null}">Cupos no disponibles</span>
                 </p>
+        
                 <p class="card-text"><strong>Duración:</strong> 
                     <span th:if="${taller.duracion != null}" th:text="${taller.duracion}">Duración</span> minutos
                     <span th:if="${taller.duracion == null}">Duración no disponible</span>
                 </p>
             </div>
         </div>
+        
 
         <!-- Botones -->
         <div class="mt-3 text-center">

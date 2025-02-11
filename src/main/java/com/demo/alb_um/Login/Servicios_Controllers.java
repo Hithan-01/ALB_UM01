@@ -199,11 +199,12 @@ public String cargarVistaAdmin(String userName, UsuarioAdminServicio usuarioAdmi
         if (manager != null) {
             model.addAttribute("manager", manager); // Añadir información del manager al modelo
             model.addAttribute("mensaje", "Bienvenido al portal de Manager"); // Mensaje de bienvenida
-            return "managerInicio"; // Renderizar la vista managerInicio
+            return "/Vistas_Manager/Vista_General"; // Renderizar la vista managerInicio
         }
 
         model.addAttribute("mensajeError", "No se encontró información para el manager.");
         return "error"; // Vista de error si el manager no existe
     }
+    
     
 }

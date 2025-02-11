@@ -72,47 +72,51 @@
             <p th:text="${mensajeExito}"></p>
         </div>
 
-        <!-- Formulario para editar el taller -->
-        <form th:action="@{/portal/admin/talleres/{id}/editar(id=${taller.idTaller})}" method="post" th:object="${taller}">
-            <input type="hidden" th:field="*{idTaller}"/> <!-- Campo oculto para el ID -->
+<!-- Formulario para editar el taller -->
+<form th:action="@{/portal/admin/talleres/{id}/editar(id=${taller.idTaller})}" method="post" th:object="${taller}">
+    <input type="hidden" th:field="*{idTaller}"/> <!-- Campo oculto para el ID -->
 
-            <div class="mb-3">
-                <label for="nombre" class="form-label">Nombre del Taller</label>
-                <input type="text" id="nombre" name="nombre" class="form-control" th:field="*{nombre}" required>
-            </div>
+    <div class="mb-3">
+        <label for="nombre" class="form-label">Nombre del Taller</label>
+        <input type="text" id="nombre" name="nombre" class="form-control" th:field="*{nombre}" required>
+    </div>
 
-            <div class="mb-3">
-                <label for="descripcion" class="form-label">Descripción</label>
-                <textarea id="descripcion" name="descripcion" class="form-control" th:field="*{descripcion}"></textarea>
-            </div>
+    <div class="mb-3">
+        <label for="descripcion" class="form-label">Descripción</label>
+        <textarea id="descripcion" name="descripcion" class="form-control" th:field="*{descripcion}"></textarea>
+    </div>
 
-            <div class="mb-3">
-                <label for="fecha" class="form-label">Fecha</label>
-                <input type="date" id="fecha" name="fecha" class="form-control" th:field="*{fecha}" required>
-            </div>
+    <div class="mb-3">
+        <label for="lugar" class="form-label">Lugar</label>
+        <input type="text" id="lugar" name="lugar" class="form-control" th:field="*{lugar}" required>
+    </div>
 
-            <div class="mb-3">
-                <label for="hora" class="form-label">Hora</label>
-                <!-- Incluye la hora actual del taller -->
-                <input type="time" id="hora" name="hora" class="form-control" th:field="*{hora}" th:value="*{hora}" required>
-            </div>
+    <div class="mb-3">
+        <label for="fecha" class="form-label">Fecha</label>
+        <input type="date" id="fecha" name="fecha" class="form-control" th:field="*{fecha}" required>
+    </div>
 
-            <div class="mb-3">
-                <label for="duracion" class="form-label">Duración (minutos)</label>
-                <!-- Campo para la duración -->
-                <input type="number" id="duracion" name="duracion" class="form-control" th:field="*{duracion}" th:value="*{duracion}" required>
-            </div>
+    <div class="mb-3">
+        <label for="hora" class="form-label">Hora</label>
+        <input type="time" id="hora" name="hora" class="form-control" th:field="*{hora}" required>
+    </div>
 
-            <div class="mb-3">
-                <label for="cupos" class="form-label">Cupos</label>
-                <input type="number" id="cupos" name="cupos" class="form-control" th:field="*{cupos}" required>
-            </div>
+    <div class="mb-3">
+        <label for="duracion" class="form-label">Duración (minutos)</label>
+        <input type="number" id="duracion" name="duracion" class="form-control" th:field="*{duracion}" required>
+    </div>
 
-            <div class="text-center">
-                <button type="submit" class="btn btn-primary">Guardar Cambios</button>
-                <a th:href="@{/portal/admin/talleres}" class="btn btn-secondary">Cancelar</a>
-            </div>
-        </form>
+    <div class="mb-3">
+        <label for="cupos" class="form-label">Cupos</label>
+        <input type="number" id="cupos" name="cupos" class="form-control" th:field="*{cupos}" required>
+    </div>
+
+    <div class="text-center">
+        <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+        <a th:href="@{/portal/admin/talleres}" class="btn btn-secondary">Cancelar</a>
+    </div>
+</form>
+
     </div>
 
     <!-- Footer -->

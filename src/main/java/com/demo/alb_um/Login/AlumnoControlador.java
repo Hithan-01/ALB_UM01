@@ -1,20 +1,27 @@
 package com.demo.alb_um.Login;
 import java.util.Map;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.util.Optional;
 import java.util.Set;
 import java.security.Principal;
+import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.time.LocalDate;
 import com.demo.alb_um.Modulos.Admn.Ent_UsuarioAdmin;
+import com.demo.alb_um.Modulos.Alumno.Entidad_Usuario_Alumno;
+import com.demo.alb_um.Modulos.Alumno.UsuarioAlumnoRepositorio;
 import com.demo.alb_um.Modulos.Alumno.UsuarioAlumnoServicio;
 import com.demo.alb_um.Modulos.Antropometria.AntropometriaServicio;
 import com.demo.alb_um.Modulos.Antropometria.Ent_Antro;
@@ -25,11 +32,20 @@ import com.demo.alb_um.Modulos.Horario_servicio.Ent_HorarioServicio;
 import com.demo.alb_um.Modulos.Horario_servicio.HorarioServicioRepositorio;
 import com.demo.alb_um.Modulos.Horario_servicio.HorarioServicioServicio;
 import com.demo.alb_um.Modulos.Inscripcion_Taller.InscripcionTallerServicio;
+import com.demo.alb_um.Modulos.Usuario.Entidad_Usuario;
+import com.demo.alb_um.Modulos.Usuario.UsuarioRepositorio;
+
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
+
 import com.demo.alb_um.DTOs.AlumnoDTO;
+import com.demo.alb_um.DTOs.CambioContrasenaDTO;
 import com.demo.alb_um.DTOs.HorarioServicioDTO;
 import com.demo.alb_um.DTOs.TallerDTO;
 
 @Controller
+@RequiredArgsConstructor
 @RequestMapping("/alumno")
 public class AlumnoControlador {
 
@@ -40,23 +56,10 @@ public class AlumnoControlador {
     private final InscripcionTallerServicio inscripcionTallerServicio; // Nuevo servicio
     private final CitaRepositorio citaRepositorio;
     private final AntropometriaServicio antropometriaServicio;
+    private final UsuarioRepositorio usuarioRepositorio;
+    private final PasswordEncoder passwordEncoder;
+    private final UsuarioAlumnoRepositorio usuarioAlumnoRepositorio;
 
-    @Autowired
-    public AlumnoControlador(UsuarioAlumnoServicio usuarioAlumnoServicio, 
-                             CitaServicio citaServicio,
-                             HorarioServicioServicio horarioServicio, 
-                             HorarioServicioRepositorio horarioServicioRepositorio,
-                             InscripcionTallerServicio inscripcionTallerServicio, 
-                             CitaRepositorio citaRepositorio,
-                             AntropometriaServicio antropometriaServicio) { // Inyecta el nuevo servicio
-        this.usuarioAlumnoServicio = usuarioAlumnoServicio;
-        this.citaServicio = citaServicio;
-        this.horarioServicio = horarioServicio;
-        this.horarioServicioRepositorio = horarioServicioRepositorio;
-        this.inscripcionTallerServicio = inscripcionTallerServicio; // Asigna el servicio
-        this.citaRepositorio = citaRepositorio;
-        this.antropometriaServicio = antropometriaServicio;
-    }
 
     @GetMapping("/servicios")
 public String mostrarServicios(Model model, Principal principal) {
@@ -223,5 +226,83 @@ public String verDatosAntropometricos(@PathVariable Long id, Model model) {
     }
 }
 
+@GetMapping("/cambiar-contrasena")
+    public String mostrarFormularioCambioContrasena(Model model) {
+        model.addAttribute("cambioContrasenaDTO", new CambioContrasenaDTO());
+        return "Vistas_Alumno/Cambio_Contrasena";
+    }
+
+    @PostMapping("/cambiar-contrasena")
+    public String cambiarContrasena(@ModelAttribute CambioContrasenaDTO cambioContrasenaDTO,
+                                    RedirectAttributes redirectAttributes,
+                                    @AuthenticationPrincipal UserDetails userDetails,
+                                    HttpServletRequest request) {
+    
+        if (userDetails == null) {
+            redirectAttributes.addFlashAttribute("error", "No estás autenticado.");
+            return "redirect:/login";
+        }
+    
+        String username = userDetails.getUsername();
+        Entidad_Usuario usuario = usuarioRepositorio.findByUserName(username)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+    
+        // Validar la nueva contraseña
+        if (cambioContrasenaDTO.getNuevaContrasena().equals(username)) {
+            redirectAttributes.addFlashAttribute("error", "No puedes usar tu matrícula como contraseña.");
+            return "redirect:/alumno/cambiar-contrasena";
+        }
+    
+        if (!cambioContrasenaDTO.getNuevaContrasena().equals(cambioContrasenaDTO.getConfirmarContrasena())) {
+            redirectAttributes.addFlashAttribute("error", "Las contraseñas nuevas no coinciden.");
+            return "redirect:/alumno/cambiar-contrasena";
+        }
+    
+        // Actualizar la contraseña
+        usuario.setContrasena(passwordEncoder.encode(cambioContrasenaDTO.getNuevaContrasena()));
+        usuarioRepositorio.save(usuario);
+    
+        // Cerrar sesión
+        try {
+            request.logout();
+        } catch (ServletException e) {
+            e.printStackTrace();
+        }
+    
+        redirectAttributes.addFlashAttribute("success", "Contraseña cambiada exitosamente. Inicia sesión nuevamente.");
+        return "redirect:/login";
+    }
+    
+
+@GetMapping("/ver-detalles-asistencias")
+public String verDetallesAsistenciasAlumno(Principal principal, Model model) {
+    // Obtener el usuario actual a partir del username
+    Optional<Entidad_Usuario_Alumno> alumnoOpt = usuarioAlumnoRepositorio.findByUsuario_UserName(principal.getName());
+
+    if (alumnoOpt.isPresent()) {
+        Entidad_Usuario_Alumno alumno = alumnoOpt.get();
+
+        // Obtener todas sus asistencias
+        List<Map<String, Object>> asistencias = alumno.getAsistencias().stream()
+            .map(asistencia -> {
+                Map<String, Object> asistenciaInfo = new HashMap<>();
+                asistenciaInfo.put("fechaRegistro", asistencia.getFechaRegistro());
+                asistenciaInfo.put("estadoFalta", asistencia.getEstadoFalta() != null ? asistencia.getEstadoFalta().name() : "Sin estado");
+                asistenciaInfo.put("actividad", asistencia.getLista().getActividadFisica().getNombre());
+                asistenciaInfo.put("diaSemana", asistencia.getLista().getActividadFisica().getDiaSemana());
+                asistenciaInfo.put("hora", asistencia.getLista().getActividadFisica().getHora());
+                return asistenciaInfo;
+            })
+            .collect(Collectors.toList());
+
+        model.addAttribute("alumno", alumno);
+        model.addAttribute("asistencias", asistencias);
+
+        return "/Vistas_Alumno/Detalle_Asistencias";
+    } else {
+        model.addAttribute("error", "No se encontró al alumno.");
+        return "/Vistas_Alumno/Error";
+    }
+}
 
 }

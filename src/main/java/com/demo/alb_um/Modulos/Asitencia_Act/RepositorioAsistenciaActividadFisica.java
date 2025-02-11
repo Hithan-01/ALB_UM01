@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
@@ -20,4 +21,7 @@ public interface RepositorioAsistenciaActividadFisica extends JpaRepository<Ent_
     List<Ent_AsistenciaActividadFisica> findByLista(Entidad_Lista lista);
 
     long countByUsuarioAlumnoAndEstadoFalta(Entidad_Usuario_Alumno usuarioAlumno, Ent_AsistenciaActividadFisica.EstadoFalta estadoFalta);
+
+    Optional<Ent_AsistenciaActividadFisica> findByUsuarioAlumnoAndFechaRegistroBetween(
+            Entidad_Usuario_Alumno usuarioAlumno, LocalDateTime inicio, LocalDateTime fin);
 }

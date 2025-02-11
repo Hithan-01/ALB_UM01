@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Lista de Alumnos Inscritos</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .container {
+            margin-top: 30px;
+        }
+        .table {
+            background-color: #fff;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .btn-sm {
+            padding: 5px 10px;
+            font-size: 0.875rem;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Navbar -->
+<header class="header text-white py-3" style="background: linear-gradient(45deg, #343a40, #6c757d);">
+    <div class="container">
+        <nav class="navbar navbar-expand-lg navbar-dark">
+            <a class="navbar-brand" th:href="@{/portal/inicio}">ÁLBUM UM</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" 
+                    aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarContent">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/portal/manager/listar-actividades}">Ver Actividades Físicas</a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="registroDropdown" role="button"
+                           data-bs-toggle="dropdown" aria-expanded="false">
+                            Registrar
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="registroDropdown">
+                            <li><a class="dropdown-item" th:href="@{/portal/manager/registrar-alumno}">Registrar Alumno</a></li>
+                            <li><a class="dropdown-item" th:href="@{/portal/manager/registrar-admin}">Registrar Administrador</a></li>
+                            <li><a class="dropdown-item" th:href="@{/portal/manager/registrar-coach}">Registrar Coach</a></li>
+                            <li><a class="dropdown-item" th:href="@{/portal/manager/registrar-servicio}">Registrar Servicio</a></li>
+                        </ul>
+                    </li>
+                </ul>
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/logout}">Cerrar Sesión</a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+    </div>
+</header>
+
+<!-- Contenido Principal -->
+<div class="container">
+    <h1 class="mb-4 text-center">Lista de Alumnos Inscritos</h1>
+
+    <!-- Tabla mejorada -->
+    <div class="table-responsive">
+        <table class="table table-striped table-hover">
+            <thead class="table-dark">
+                <tr>
+                    <th>Nombre</th>
+                    <th>Facultad</th>
+                    <th>Residencia</th>
+                    <th>Semestre</th>
+                    <th>Opciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="alumno : ${alumnos}">
+                    <td th:text="${alumno.nombreCompleto}"></td>
+                    <td th:text="${alumno.facultad}"></td>
+                    <td th:text="${alumno.residencia}"></td>
+                    <td th:text="${alumno.semestre}"></td>
+                    <td>
+                        <form th:action="@{'/portal/manager/mover-alumno/' + ${alumno.idUsuarioAlumno}}" method="get">
+                            <button type="submit" class="btn btn-primary btn-sm">Mover Alumno</button>
+                        </form>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Botón de regreso -->
+    <div class="text-center mt-4">
+        <a th:href="@{/portal/manager/listar-actividades}" class="btn btn-secondary btn-lg">Regresar</a>
+    </div>
+</div>
+
+<!-- Bootstrap JavaScript -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>

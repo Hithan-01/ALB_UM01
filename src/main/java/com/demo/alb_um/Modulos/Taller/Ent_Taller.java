@@ -51,6 +51,9 @@ public class Ent_Taller {
     @Column(name = "hora_finalizacion")
     private LocalDateTime horaFinalizacion;
 
+    @Column(name = "lugar", length = 100, nullable = false) // 🔹 Nueva columna agregada
+    private String lugar;
+
     @OneToMany(mappedBy = "taller", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonManagedReference
     private Set<Ent_InscripcionTaller> inscripciones;
@@ -99,6 +102,7 @@ public class Ent_Taller {
         return getFechaHoraInicio().plusMinutes(10);
     }
 
+    
     @Transient
     public boolean puedeRegistrarLlegada() {
         LocalDateTime ahora = LocalDateTime.now();
@@ -141,6 +145,14 @@ public class Ent_Taller {
         }
     }
 
+    public String getLugar() {
+        return lugar;
+    }
+
+    public void setLugar(String lugar) {
+        this.lugar = lugar;
+    }
+    
     // Getters y Setters
     public Long getIdTaller() {
         return idTaller;

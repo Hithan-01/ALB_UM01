@@ -44,27 +44,29 @@ public class Servicio_lista {
         // Obtener el día actual
         String diaActual = fechaActual.getDayOfWeek().toString().toUpperCase(); // MONDAY, TUESDAY, etc.
     
-        // Validar el día y la hora usando el identificador
-        if (!esDiaCorrecto(identificadorGrupo, diaActual, horaProgramada)) {
-            throw new IllegalArgumentException("No es el día o la hora correspondiente para iniciar la lista.");
-        }
+        // 📌 Si la actividad es "Caminata", solo validamos el día
+        if ("Caminata".equalsIgnoreCase(actividadFisica.getNombre())) {
+            if (!esDiaCorrecto(identificadorGrupo, diaActual)) {
+                throw new IllegalArgumentException("Hoy no es un día permitido para registrar pasos.");
+            }
+        } else {
+            // 📌 Para otras actividades, validamos día y hora
+            if (!esDiaCorrecto(identificadorGrupo, diaActual, horaProgramada)) {
+                throw new IllegalArgumentException("No es el día o la hora correspondiente para iniciar la lista.");
+            }
     
-        // Validar si la hora actual está dentro del rango permitido
-        LocalTime horaActual = LocalTime.now();
-        LocalTime horaInicio = horaProgramada.minusMinutes(10); // 10 minutos antes
-        LocalTime horaCierre = horaProgramada.plusMinutes(40);  // 40 minutos después
+            // Validar si la hora actual está dentro del rango permitido
+            LocalTime horaActual = LocalTime.now();
+            LocalTime horaInicio = horaProgramada.minusMinutes(10); // 10 minutos antes
+            LocalTime horaCierre = horaProgramada.plusMinutes(40);  // 40 minutos después
     
-        // Logs de validación de tiempo
-        System.out.println("Hora actual: " + horaActual);
-        System.out.println("Hora programada: " + horaProgramada);
-        System.out.println("Rango permitido: " + horaInicio + " - " + horaCierre);
+            if (horaActual.isBefore(horaInicio)) {
+                throw new IllegalArgumentException("Espera a la hora indicada de la clase para iniciar el pase de lista.");
+            }
     
-        if (horaActual.isBefore(horaInicio)) {
-            throw new IllegalArgumentException("Espera a la hora indicada de la clase para iniciar el pase de lista.");
-        }
-    
-        if (horaActual.isAfter(horaCierre)) {
-            throw new IllegalArgumentException("El tiempo para iniciar la lista ha expirado.");
+            if (horaActual.isAfter(horaCierre)) {
+                throw new IllegalArgumentException("El tiempo para iniciar la lista ha expirado.");
+            }
         }
     
         // Si todas las validaciones son correctas, obtener o crear lista
@@ -105,6 +107,30 @@ public class Servicio_lista {
     
         return diaValido && horaValida;
     }
+
+    public boolean esDiaCorrecto(String identificadorGrupo, String diaActual) {
+        if (identificadorGrupo == null) {
+            System.out.println("El identificador es nulo.");
+            return false;
+        }
+    
+        String letraDia = identificadorGrupo.substring(0, 1); // A o B
+        boolean diaValido = false;
+    
+        if (letraDia.equalsIgnoreCase("A")) {
+            diaValido = diaActual.equals("MONDAY") || diaActual.equals("WEDNESDAY");
+        } else if (letraDia.equalsIgnoreCase("B")) {
+            diaValido = diaActual.equals("TUESDAY") || diaActual.equals("THURSDAY");
+        }
+    
+        System.out.println("Validando día para Caminata:");
+        System.out.println("Día actual: " + diaActual);
+        System.out.println("Identificador Grupo: " + identificadorGrupo);
+        System.out.println("Día válido: " + diaValido);
+    
+        return diaValido;
+    }
+    
     
 
 
